@@ -55,7 +55,10 @@ window_rate_dict = {'512 x 512': 28.7185,
                     '100 x 100' : 640.0}
 '''
 
-events_file = glob('*ce.fits')[0] #events file
+if len(glob('*ce.fits')) == 1:
+    events_file = glob('*ce.fits')[0] #events file
+else:
+    events_file = 'please get a events file'
 radius = 6  # radius of aperture in pixels.
 sky_radius = 12 # radius of background aperture in pixels.
 how_many = 4 # number of objects to be auto-detected.
@@ -63,8 +66,8 @@ bwidth = 50 # bin width in seconds, change as you please.
 framecount_per_sec = 28.7185  # 28.7185 frames / second for 512x512 mode.
 
 # The coordinates are for curves
-xp = 2000
-yp = 2000
+xp = 3137
+yp = 3652
 
 '''The following parameter determines how the background is determined.
 If you prefer to manually specify a region where there are no stars, 
@@ -126,15 +129,19 @@ def makecurves(events_file = events_file,
 
     uA = np.array(uA)[:how_many]
 
+    if len(uA) == 0:
+        print('No sources, try changing the "how_many" parameter.')
+        return
+
     # To avoid sources at the edges. 
-    uA = [(X_p, Y_p) for X_p, Y_p in uA 
-          if ((X_p - 2400)**2 + (Y_p - 2400)**2) <= 2000**2]
+#    uA = [(X_p, Y_p) for X_p, Y_p in uA 
+#          if ((X_p - 2400)**2 + (Y_p - 2400)**2) <= 2000**2]
     np.savetxt('sources_' + events_file +'.coo', uA, fmt = '%4.f\t%4.f')
-    print("\nDetected sources inside a circle of radius 2000 pixels\
-           \naround the approximate image centre of (2400, 2400).\n")	
-    for i in np.array(uA):
-        print(i)
-    print('\nCheck {}'.format('sources_' + events_file +'.coo'))
+#    print("\nDetected sources inside a circle of radius 2000 pixels\
+#           \naround the approximate image centre of (2400, 2400).\n")	
+#    for i in np.array(uA):
+#        print(i)
+    print('\nDetected source coordinates saved in file:\n* {}'.format('sources_' + events_file +'.coo'))
 
     # To automatically estimate background region.
     plt.figure(figsize = (10.5, 10))
@@ -181,7 +188,7 @@ def makecurves(events_file = events_file,
     plt.savefig(png_name, format = 'png', bbox_inches = 'tight')
     plt.clf()
 
-    print('Check {}'.format(png_name))
+    print('Detected sources are plotted in the image:\n* {}'.format(png_name))
 
     # To create smaller background image.
     def create_sub_image(pos_x, pos_y, sub_size, cir_rad, sub_name):
@@ -229,7 +236,7 @@ def makecurves(events_file = events_file,
     bg_CPS = (scaled_events * framecount_per_sec) / Number_of_frames
     bg_CPS_e = (scaled_events_e * framecount_per_sec) / Number_of_frames
     print("\nThe estimated background CPS = {:.5f} +/-{:.5f}".format(bg_CPS, bg_CPS_e))
-    print('Check {}'.format(bg_png))
+    print('Region selected for background estimate:\n* {}'.format(bg_png))
 
     # Calculating number of bins.
     nbin = (fc_time_end - fc_time_start) / bwidth
@@ -250,7 +257,7 @@ def makecurves(events_file = events_file,
                                          density = None)
 
     # selecting events within a circular region.
-    print('\n----------------- lightcurves -----------------')
+    print('\n---------------------- lightcurves ----------------------')
     plt.figure(figsize = (13, 7))
     for uaxy in uA:
         xp, yp = uaxy
@@ -281,7 +288,7 @@ def makecurves(events_file = events_file,
                       in zip(bin_centres, counts, u_counts) if mc != 0]
         else:
             print('\nWhoa! What happened?\n')
-            sys.exit(1)
+            return
 
         if len(mbmcuc) != 0:
             mcentres, mcounts, frames_in_bin = zip(*mbmcuc)
@@ -306,14 +313,16 @@ def makecurves(events_file = events_file,
         plt.xlim(fc_time_start - empty_space, till_here + empty_space)
 
         plt.xlabel("Time (Julian Date)", fontsize = 6)
-        median_time = np.median(framecount_time)
-        figname = 'makecurves_' + str(xp) + '_' + str(yp) + '_' + events_file + '_' + str(median_time) + ".png"
+#        median_time = np.median(framecount_time)
+#        figname = 'makecurves_' + str(xp) + '_' + str(yp) + '_' + events_file + '_' + str(median_time) + ".png"
+        figname = 'makecurves_' + str(xp) + '_' + str(yp) + '_' + events_file + ".png"
         plt.savefig(figname, format = 'png', bbox_inches = 'tight', dpi = 150)
-        print(figname)
+        print('* {}'.format(figname))
         
         plt.clf()
 
     print("\nDone!\n")
+    plt.close('all')
 
 
 def curve(events_file = events_file,
@@ -378,11 +387,10 @@ def curve(events_file = events_file,
 
     bg_circle = plt.Circle((x_bg, y_bg), 100, color = 'k', fill = False)
     plt.gcf().gca().add_artist(bg_circle)
-    png_name = "sources_" + events_file + ".png"
+    png_name = "source_" + events_file + ".png"
     plt.savefig(png_name, format = 'png', bbox_inches = 'tight')
     plt.clf()
 
-    print('Check {}'.format(png_name))
 
     # To create smaller source and background images.
     def create_sub_image(pos_x, pos_y, sub_size, cir_rad, sub_name):
@@ -438,7 +446,7 @@ def curve(events_file = events_file,
     bg_CPS = (scaled_events * framecount_per_sec) / Number_of_frames
     bg_CPS_e = (scaled_events_e * framecount_per_sec) / Number_of_frames
     print("\nThe estimated background CPS = {:.5f} +/-{:.5f}".format(bg_CPS, bg_CPS_e))
-    print('Check {}'.format(bg_png))
+    print('Region selected for background estimate:\n* {}'.format(bg_png))
 
     # Calculating number of bins.
     nbin = fc_time_width / bwidth
@@ -476,7 +484,7 @@ def curve(events_file = events_file,
                   if mc != 0]
     else:
         print('\nWhoa! What happened?\n')
-        sys.exit(1)
+        return
 
     if len(mbmcuc) != 0:
         mcentres, mcounts, frames_in_bin = zip(*mbmcuc)
@@ -502,15 +510,21 @@ def curve(events_file = events_file,
 
     #To write the array to output.
     data_to_output = list(zip(mcentres, CPS, CPS_err))
-    datname = 'lightcurve_' + str(xp) + '_' + str(yp) + '_' + events_file + '_.dat'
+    datname = 'curve_' + str(xp) + '_' + str(yp) + '_' + events_file + '.dat'
     np.savetxt(datname, data_to_output,
                fmt = '%10.11f\t%.5e\t%.5e',
                header = 'MJD\t\t\tCPS (bin=%ss)\tCPS_error' %bwidth)
 
-    figname = 'curve_' + str(xp) + '_' + str(yp) + '_' + events_file + '_.png'
+    figname = 'curve_' + str(xp) + '_' + str(yp) + '_' + events_file + '.png'
     plt.savefig(figname, format = 'png', bbox_inches = 'tight', dpi = 150)
 
-    print("\nDone!\n") 
+    print('\n-------------------------- curve --------------------------')
+    print('source: {}'.format(png_name))
+    print('data: {}'.format(datname))
+    print('plot: {}'.format(figname))
+
+    print("\nDone!\n")
+    plt.close('all') 
 
 
 
