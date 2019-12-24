@@ -4,7 +4,7 @@
 '''A tool to plot light curves from UL2P events-file.
 
 
-   Copyright 2017 Prajwel Joseph
+   Copyright 2019 Prajwel Joseph
   
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
    distributed under the License is distributed on an "AS IS" BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
-   limitations under the License. 
-
-   Changes; when, what
-   -------------------
-
-   Jul 12, 2017: Cleaned up syntax, small changes to plot settings.'''
+   limitations under the License.'''
 
 
 import matplotlib
@@ -39,9 +34,17 @@ from scipy.spatial import KDTree
 from matplotlib.colors import LogNorm
 
 
+def get_eventsfile():
+    if len(glob('*ce.fits')) == 1:
+        events_file = glob('*ce.fits')[0]
+    elif len(glob('*ce.fits.gz')) == 1:
+        events_file = glob('*ce.fits.gz')[0] #events file
+    else:
+        events_file = ''
+    return events_file
  
 #######################################################################
-# Initial set of parameters
+# Initial set of parameters.
 
 '''Window size Vs Framecount rate dictionary (approximate). 
 The most accurate way to get the rate would be to take the value 
@@ -55,10 +58,7 @@ window_rate_dict = {'512 x 512': 28.7185,
                     '100 x 100' : 640.0}
 '''
 
-if len(glob('*ce.fits')) == 1:
-    events_file = glob('*ce.fits')[0] #events file
-else:
-    events_file = 'please get a events file'
+events_file = get_eventsfile() #events file
 radius = 6  # radius of aperture in pixels.
 sky_radius = 12 # radius of background aperture in pixels.
 how_many = 4 # number of objects to be auto-detected.
@@ -66,8 +66,8 @@ bwidth = 50 # bin width in seconds, change as you please.
 framecount_per_sec = 28.7185  # 28.7185 frames / second for 512x512 mode.
 
 # The coordinates are for curves
-xp = 3137
-yp = 3652
+xp = 2000
+yp = 2000
 
 '''The following parameter determines how the background is determined.
 If you prefer to manually specify a region where there are no stars, 
@@ -82,7 +82,6 @@ y_bg = 1812 # background Y-coordinate.
 # Following parameters need not be changed (unless you want to).
 whole_figure_resolution = 256 # resolution of full figure.
 sub_fig_size = 40 # size of sub figure.
-
 #######################################################################
 
 
