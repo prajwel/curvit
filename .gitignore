@@ -5,3 +5,6 @@ __pycache__
 *coo
 *dat
 *ipynb
+curvit.egg-info
+dist
+build
