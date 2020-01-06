@@ -34,14 +34,14 @@ from scipy.spatial import KDTree
 from matplotlib.colors import LogNorm
 
 
-def get_eventsfile():
-    if len(glob('*ce.fits')) == 1:
-        events_file = glob('*ce.fits')[0]
-    elif len(glob('*ce.fits.gz')) == 1:
-        events_file = glob('*ce.fits.gz')[0] #events file
-    else:
-        events_file = ''
-    return events_file
+#def get_eventsfile():
+#    if len(glob('*ce.fits')) == 1:
+#        events_file = glob('*ce.fits')[0]
+#    elif len(glob('*ce.fits.gz')) == 1:
+#        events_file = glob('*ce.fits.gz')[0] #events file
+#    else:
+#        events_file = ''
+#    return events_file
  
 #######################################################################
 # Initial set of parameters.
@@ -58,7 +58,7 @@ window_rate_dict = {'512 x 512': 28.7185,
                     '100 x 100' : 640.0}
 '''
 
-events_file = get_eventsfile() #events file
+events_file = '' #events file
 radius = 6  # radius of aperture in pixels.
 sky_radius = 12 # radius of background aperture in pixels.
 how_many = 4 # number of objects to be auto-detected.
@@ -82,6 +82,7 @@ y_bg = 1812 # background Y-coordinate.
 # Following parameters need not be changed (unless you want to).
 whole_figure_resolution = 256 # resolution of full figure.
 sub_fig_size = 40 # size of sub figure.
+fontsize = 9 #fontsize for plots
 #######################################################################
 
 
@@ -102,7 +103,8 @@ def makecurves(events_file = events_file,
                x_bg = x_bg,
                y_bg = y_bg,
                whole_figure_resolution = whole_figure_resolution,
-               sub_fig_size = sub_fig_size):
+               sub_fig_size = sub_fig_size, 
+               fontsize = fontsize):
 
     # Reading few columns.
     f = fits.open(events_file)
@@ -129,9 +131,18 @@ def makecurves(events_file = events_file,
     uA = np.array(uA)[:how_many]
 
     if len(uA) == 0:
-        print('No sources, try changing the "how_many" parameter.')
+        print('No sources, try increasing the "how_many" parameter.')
         return
 
+    # To avoid sources which have coordinates 0 or 4800.
+    mask = np.isin(uA, [0, 4800], invert = True)
+    mask = mask[:, 0] * mask[:, 1]
+    uA = uA[mask]
+
+    if len(uA) == 0:
+        print('No sources, try increasing the "how_many" parameter.')
+        return
+    
     # To avoid sources at the edges. 
 #    uA = [(X_p, Y_p) for X_p, Y_p in uA 
 #          if ((X_p - 2400)**2 + (Y_p - 2400)**2) <= 2000**2]
@@ -257,7 +268,7 @@ def makecurves(events_file = events_file,
 
     # selecting events within a circular region.
     print('\n---------------------- lightcurves ----------------------')
-    plt.figure(figsize = (13, 7))
+    plt.figure(figsize = (8, 5))
     for uaxy in uA:
         xp, yp = uaxy
         F = [Fn for xx, yy, Fn 
@@ -272,10 +283,11 @@ def makecurves(events_file = events_file,
         fc_time = (np.array(fc_time) / 86400.0) + jan2010  # 1 julian day = 86400 seconds
 
         plt.title("X = %s, Y = %s, bin = %ss, radius = %spx" \
-                  %(xp, yp, bwidth, radius), fontsize = 6)
+                  %(xp, yp, bwidth, radius), fontsize = fontsize)
 
-        plt.ylabel("Counts per second", fontsize = 6)
-        plt.tick_params(axis = 'both', labelsize = 6)
+        plt.xlabel("Time (Julian Date)", fontsize = fontsize)
+        plt.ylabel("Counts per second", fontsize = fontsize)
+        plt.tick_params(axis = 'both', labelsize = fontsize)
         counts,bin_edges = np.histogram(fc_time, bins = nbin, 
                                         range = (fc_time_start, till_here),
                                         density = None)    
@@ -311,7 +323,6 @@ def makecurves(events_file = events_file,
         empty_space = (till_here - fc_time_start) / 25.0
         plt.xlim(fc_time_start - empty_space, till_here + empty_space)
 
-        plt.xlabel("Time (Julian Date)", fontsize = 6)
 #        median_time = np.median(framecount_time)
 #        figname = 'makecurves_' + str(xp) + '_' + str(yp) + '_' + events_file + '_' + str(median_time) + ".png"
         figname = 'makecurves_' + str(xp) + '_' + str(yp) + '_' + events_file + ".png"
@@ -410,7 +421,7 @@ def curve(events_file = events_file,
         plt.clf()
         return source_png_name         
         
-    source_png = create_sub_image(xp, yp, sub_fig_size, radius, 'source_')
+    source_png = create_sub_image(xp, yp, sub_fig_size, radius, 'source_zoomed_')
     bg_png = create_sub_image(x_bg, y_bg, sub_fig_size, sky_radius, 'background_')
 
     # For estimating background counts.
@@ -518,26 +529,12 @@ def curve(events_file = events_file,
     plt.savefig(figname, format = 'png', bbox_inches = 'tight', dpi = 150)
 
     print('\n-------------------------- curve --------------------------')
-    print('source: {}'.format(png_name))
+    print('source: {}\n        {}'.format(png_name, source_png))
     print('data: {}'.format(datname))
     print('plot: {}'.format(figname))
 
     print("\nDone!\n")
     plt.close('all') 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
