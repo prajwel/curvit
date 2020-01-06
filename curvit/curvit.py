@@ -23,7 +23,9 @@ import matplotlib
 # Force matplotlib to not use any Xwindows backend.
 matplotlib.use('Agg')
 
+import os
 import sys
+import ntpath
 import random
 import numpy as np
 import matplotlib.pyplot as plt
@@ -36,12 +38,12 @@ from matplotlib.colors import LogNorm
 
 #def get_eventsfile():
 #    if len(glob('*ce.fits')) == 1:
-#        events_file = glob('*ce.fits')[0]
+#        events_list = glob('*ce.fits')[0]
 #    elif len(glob('*ce.fits.gz')) == 1:
-#        events_file = glob('*ce.fits.gz')[0] #events file
+#        events_list = glob('*ce.fits.gz')[0] #events file
 #    else:
-#        events_file = ''
-#    return events_file
+#        events_list = ''
+#    return events_list
  
 #######################################################################
 # Initial set of parameters.
@@ -58,7 +60,7 @@ window_rate_dict = {'512 x 512': 28.7185,
                     '100 x 100' : 640.0}
 '''
 
-events_file = '' #events file
+events_list = '' #events file
 radius = 6  # radius of aperture in pixels.
 sky_radius = 12 # radius of background aperture in pixels.
 how_many = 4 # number of objects to be auto-detected.
@@ -86,14 +88,14 @@ fontsize = 9 #fontsize for plots
 #######################################################################
 
 
-def modify_string(events_file):
-    if events_file[-5:] == '.fits':
-        events_file = events_file[:-5]
-    if events_file[-8:] == '.fits.gz':
-        events_file = events_file[:-8]
-    return events_file
+def modify_string(events_list):
+    if events_list[-5:] == '.fits':
+        events_list = events_list[:-5]
+    if events_list[-8:] == '.fits.gz':
+        events_list = events_list[:-8]
+    return events_list
  
-def makecurves(events_file = events_file,
+def makecurves(events_list = events_list,
                radius = radius,
                how_many = how_many,
                bwidth = bwidth,
@@ -107,13 +109,15 @@ def makecurves(events_file = events_file,
                fontsize = fontsize):
 
     # Reading few columns.
-    f = fits.open(events_file)
+    f = fits.open(events_list)
     time = f[1].data['MJD_L2']
     FrameCount = f[1].data['FrameCount']
     fx = f[1].data['Fx']
     fy = f[1].data['Fy']
 
-    events_file = modify_string(events_file)
+
+    path_to_events_list, events_list = ntpath.split(events_list)
+    events_list = modify_string(events_list)
 
     # To find positions of interest (positions with maximum events).
     fxi = [int(round(s)) for s in fx]
@@ -146,12 +150,13 @@ def makecurves(events_file = events_file,
     # To avoid sources at the edges. 
 #    uA = [(X_p, Y_p) for X_p, Y_p in uA 
 #          if ((X_p - 2400)**2 + (Y_p - 2400)**2) <= 2000**2]
-    np.savetxt('sources_' + events_file +'.coo', uA, fmt = '%4.f\t%4.f')
+    coo_file = os.path.join(path_to_events_list, 'sources_' + events_list +'.coo')
+    np.savetxt(coo_file, uA, fmt = '%4.f\t%4.f')
 #    print("\nDetected sources inside a circle of radius 2000 pixels\
 #           \naround the approximate image centre of (2400, 2400).\n")	
 #    for i in np.array(uA):
 #        print(i)
-    print('\nDetected source coordinates saved in file:\n* {}'.format('sources_' + events_file +'.coo'))
+    print('\nDetected source coordinates saved in file:\n* {}'.format(coo_file))
 
     # To automatically estimate background region.
     plt.figure(figsize = (10.5, 10))
@@ -189,13 +194,13 @@ def makecurves(events_file = events_file,
         obj_circle = plt.Circle(u, 100, color = 'k', fill = False)
         plt.gcf().gca().add_artist(obj_circle)
 
-    plt.annotate("Background", (x_bg, y_bg),
+    plt.annotate('Background', (x_bg, y_bg),
                  size = 13, color = 'black', fontweight = 'bold')
 
     bg_circle = plt.Circle((x_bg, y_bg), 100, color = 'k', fill = False)
     plt.gcf().gca().add_artist(bg_circle)
-    png_name = "sources_" + events_file + ".png"
-    plt.savefig(png_name, format = 'png', bbox_inches = 'tight')
+    png_name = os.path.join(path_to_events_list, 'sources_' + events_list + '.png')
+    plt.savefig( png_name, format = 'png', bbox_inches = 'tight')
     plt.clf()
 
     print('Detected sources are plotted in the image:\n* {}'.format(png_name))
@@ -214,7 +219,7 @@ def makecurves(events_file = events_file,
 
         plt.hist2d(obj_fx, obj_fy, bins = sub_size*2, norm = LogNorm())
         plt.gcf().gca().add_artist(obj_circle)
-        source_png_name = sub_name + events_file + ".png"
+        source_png_name = os.path.join(path_to_events_list, sub_name + events_list + '.png')
         plt.savefig(source_png_name, format = 'png', bbox_inches = 'tight')
         plt.clf()
         return source_png_name     
@@ -245,7 +250,7 @@ def makecurves(events_file = events_file,
     Number_of_frames = float(len(unique_FrameCount))
     bg_CPS = (scaled_events * framecount_per_sec) / Number_of_frames
     bg_CPS_e = (scaled_events_e * framecount_per_sec) / Number_of_frames
-    print("\nThe estimated background CPS = {:.5f} +/-{:.5f}".format(bg_CPS, bg_CPS_e))
+    print('\nThe estimated background CPS = {:.5f} +/-{:.5f}'.format(bg_CPS, bg_CPS_e))
     print('Region selected for background estimate:\n* {}'.format(bg_png))
 
     # Calculating number of bins.
@@ -324,18 +329,18 @@ def makecurves(events_file = events_file,
         plt.xlim(fc_time_start - empty_space, till_here + empty_space)
 
 #        median_time = np.median(framecount_time)
-#        figname = 'makecurves_' + str(xp) + '_' + str(yp) + '_' + events_file + '_' + str(median_time) + ".png"
-        figname = 'makecurves_' + str(xp) + '_' + str(yp) + '_' + events_file + ".png"
+#        figname = 'makecurves_' + str(xp) + '_' + str(yp) + '_' + events_list + '_' + str(median_time) + ".png"
+        figname = os.path.join(path_to_events_list, 'makecurves_' + str(xp) + '_' + str(yp) + '_' + events_list + '.png')
         plt.savefig(figname, format = 'png', bbox_inches = 'tight', dpi = 150)
         print('* {}'.format(figname))
         
         plt.clf()
 
-    print("\nDone!\n")
+    print('\nDone!\n')
     plt.close('all')
 
 
-def curve(events_file = events_file,
+def curve(events_list = events_list,
           xp = xp,
           yp = yp,
           radius = radius,
@@ -349,13 +354,14 @@ def curve(events_file = events_file,
           sub_fig_size = sub_fig_size):
 
     # Reading few columns.
-    f = fits.open(events_file)
+    f = fits.open(events_list)
     time = f[1].data['MJD_L2']
     FrameCount = f[1].data['FrameCount']
     fx = f[1].data['Fx']
     fy = f[1].data['Fy']
 
-    events_file = modify_string(events_file)
+    path_to_events_list, events_list = ntpath.split(events_list)
+    events_list = modify_string(events_list)
 
     # To automatically estimate background region.
     plt.figure(figsize = (10.5, 10))
@@ -397,7 +403,7 @@ def curve(events_file = events_file,
 
     bg_circle = plt.Circle((x_bg, y_bg), 100, color = 'k', fill = False)
     plt.gcf().gca().add_artist(bg_circle)
-    png_name = "source_" + events_file + ".png"
+    png_name = os.path.join(path_to_events_list, 'source_' + events_list + '.png')
     plt.savefig(png_name, format = 'png', bbox_inches = 'tight')
     plt.clf()
 
@@ -416,7 +422,7 @@ def curve(events_file = events_file,
 
         plt.hist2d(obj_fx, obj_fy, bins = sub_size*2, norm = LogNorm())
         plt.gcf().gca().add_artist(obj_circle)
-        source_png_name = sub_name + events_file + ".png"
+        source_png_name = os.path.join(path_to_events_list, sub_name + events_list + ".png")
         plt.savefig(source_png_name, format = 'png', bbox_inches = 'tight')
         plt.clf()
         return source_png_name         
@@ -520,12 +526,12 @@ def curve(events_file = events_file,
 
     #To write the array to output.
     data_to_output = list(zip(mcentres, CPS, CPS_err))
-    datname = 'curve_' + str(xp) + '_' + str(yp) + '_' + events_file + '.dat'
+    datname = os.path.join(path_to_events_list, 'curve_' + str(xp) + '_' + str(yp) + '_' + events_list + '.dat')
     np.savetxt(datname, data_to_output,
                fmt = '%10.11f\t%.5e\t%.5e',
                header = 'MJD\t\t\tCPS (bin=%ss)\tCPS_error' %bwidth)
 
-    figname = 'curve_' + str(xp) + '_' + str(yp) + '_' + events_file + '.png'
+    figname = os.path.join(path_to_events_list, 'curve_' + str(xp) + '_' + str(yp) + '_' + events_list + '.png')
     plt.savefig(figname, format = 'png', bbox_inches = 'tight', dpi = 150)
 
     print('\n-------------------------- curve --------------------------')
