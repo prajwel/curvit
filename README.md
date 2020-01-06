@@ -85,14 +85,49 @@ For the examples given below, we will be using FUV events list (`...l2ce.fits`) 
 
 The `makecurves` function of **curvit** can automatically detect sources from events list and create light curves. 
 
+``` python
+>>> import curvit
+>>> curvit.makecurves(events_list = 'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits', how_many = 4)
 ```
-import curvit
-curvit.makecurves(events_file = 'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits', how_many = 4)
+```
+Detected source coordinates saved in file:
+* sources_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.coo
+Detected sources are plotted in the image:
+* sources_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+
+The estimated background CPS = 0.00277 +/-0.00062
+Region selected for background estimate:
+* background_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+
+---------------------- lightcurves ----------------------
+* makecurves_2559_806_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+* makecurves_3791_1555_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+* makecurves_3317_1785_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+
+Done!
+
 ```
 
+### `curve`
 
+If you already have the source coordinates, the `curve` function of **curvit** can be used to create lightcurves.
 
+``` python
+>>> curvit.curve(events_list = 'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits', xp = 2559, yp = 806)
+```
+```
+The estimated background CPS = 0.00388 +/-0.00073
+Region selected for background estimate:
+* background_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
 
+-------------------------- curve --------------------------
+source: source_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+        source_zoomed_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+data: curve_2559_806_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.dat
+plot: curve_2559_806_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
 
+Done!
+```
+![FO Aqr FUV curve](FO_Aqr_FUV_curve.png)
 
 

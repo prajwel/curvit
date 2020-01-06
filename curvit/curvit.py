@@ -94,6 +94,13 @@ def modify_string(events_list):
     if events_list[-8:] == '.fits.gz':
         events_list = events_list[:-8]
     return events_list
+
+def tobe_or_notobe(time, FrameCount, bwidth, framecount_per_sec):
+    fc_time_start = time.min()
+    fc_time_width = (FrameCount.max() - FrameCount.min()) / float(framecount_per_sec)
+    fc_time_end = fc_time_width + fc_time_start
+    nbin = (fc_time_end - fc_time_start) / bwidth
+    return int(nbin)    
  
 def makecurves(events_list = events_list,
                radius = radius,
@@ -115,7 +122,16 @@ def makecurves(events_list = events_list,
     fx = f[1].data['Fx']
     fy = f[1].data['Fy']
 
+    nbin_check = tobe_or_notobe(time = time, 
+                                FrameCount = FrameCount, 
+                                bwidth = bwidth,
+                                framecount_per_sec = framecount_per_sec)
 
+    if nbin_check < 1:
+        print('\nThe events list contain little data OR check bwidth parameter.\n')
+        return
+
+    original_input = events_list
     path_to_events_list, events_list = ntpath.split(events_list)
     events_list = modify_string(events_list)
 
@@ -351,7 +367,8 @@ def curve(events_list = events_list,
           x_bg = x_bg,
           y_bg = y_bg,
           whole_figure_resolution = whole_figure_resolution,
-          sub_fig_size = sub_fig_size):
+          sub_fig_size = sub_fig_size,
+          fontsize = fontsize):
 
     # Reading few columns.
     f = fits.open(events_list)
@@ -359,6 +376,15 @@ def curve(events_list = events_list,
     FrameCount = f[1].data['FrameCount']
     fx = f[1].data['Fx']
     fy = f[1].data['Fy']
+
+    nbin_check = tobe_or_notobe(time = time, 
+                                FrameCount = FrameCount, 
+                                bwidth = bwidth,
+                                framecount_per_sec = framecount_per_sec)
+
+    if nbin_check < 1:
+        print('\nThe events list contain little data OR check bwidth parameter.\n')
+        return
 
     path_to_events_list, events_list = ntpath.split(events_list)
     events_list = modify_string(events_list)
@@ -479,11 +505,11 @@ def curve(events_list = events_list,
     framecount_time = (np.array(framecount_time) / 86400.0) + jan2010
 
     # Binning stuff, plotting stuff.
-    plt.figure(figsize = (15, 10))
-    plt.title("bin = %ss, radius = %spx" %(bwidth, radius)) 
-    plt.ylabel('Counts per second')
-    plt.xlabel("Time (Julian Date)")
-    plt.tick_params(axis = 'both', labelsize = 12)
+    plt.figure(figsize = (8, 5))
+    plt.title('bin = %ss, radius = %spx' %(bwidth, radius), fontsize = fontsize)
+    plt.xlabel("Time (Julian Date)", fontsize = fontsize)
+    plt.ylabel("Counts per second", fontsize = fontsize)
+    plt.tick_params(axis = 'both', labelsize = fontsize)
     counts, bin_edges = np.histogram(fc_time, bins = nbin,
                                      range = (fc_time_start, till_here),
                                      density = None)
@@ -505,7 +531,7 @@ def curve(events_list = events_list,
     if len(mbmcuc) != 0:
         mcentres, mcounts, frames_in_bin = zip(*mbmcuc)
     else:
-        print("No counts inside the aperture!")
+        print('No counts inside the aperture!')
 
     mcentres = np.array(mcentres)
     CPF = np.array(mcounts) / frames_in_bin
