@@ -63,11 +63,13 @@ window_rate_dict = {'512 x 512': 28.7185,
 events_list = '' #events file
 radius = 6  # radius of aperture in pixels.
 sky_radius = 12 # radius of background aperture in pixels.
-how_many = 4 # number of objects to be auto-detected.
 bwidth = 50 # bin width in seconds, change as you please. 
 framecount_per_sec = 28.7185  # 28.7185 frames / second for 512x512 mode.
 
-# The coordinates are for curves
+# The how_many is only required for makecurves. 
+how_many = 4 # number of objects to be auto-detected.
+
+# The coordinates are only required for curves.
 xp = 2000
 yp = 2000
 

@@ -1,7 +1,7 @@
 # **curvit**
 > create lightcurves from UVIT data.
 
-**curvit** is an open source python package to produce lightcurves from **UVIT (Ultraviolet imaging Telescope)** data.  The events list from the **official UVIT L2 pipeline (version 5.6 onwards)** is required as in input to the package.  Other pipelines are not yet supported (*but do mail me about your requirement, we can figure something out!*). 
+**curvit** is an open-source python package to produce lightcurves from **UVIT (Ultraviolet Imaging Telescope)** data.  The events list from the **official UVIT L2 pipeline (version 5.6 onwards)** is required as in input to the package.  Other pipelines are not yet supported (*but do let me know about your requirement, we can figure something out!*). 
 
 ## Installation
 Linux, OS X, and Windows:
@@ -68,7 +68,7 @@ RAS_VIS/
 
 Inside the directory `uvt_01`, data are organized in separate folders, each corresponding to overlapping time-ranges in UV and VIS channels, as available in Level1 dataset (`F_01`: FUV; `N_01`: NUV; `V_01`: VIS). 
 
-The sufixes of the FITS files has the following meaning. 
+The suffixes of the FITS files have the following meaning. 
 
 * `...A_l2img.fits`: Image file in astronomical coordinates.
 * `...I_l2img.fits`: Image file in instrument coordinates.
@@ -115,7 +115,7 @@ If you already have the source coordinates, the `curve` function of **curvit** c
 ``` python
 >>> curvit.curve(events_list = 'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits', xp = 2559, yp = 806)
 ```
-```
+```  
 The estimated background CPS = 0.00388 +/-0.00073
 Region selected for background estimate:
 * background_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
@@ -129,3 +129,44 @@ plot: curve_2559_806_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
 Done!
 ```
 ![FO Aqr FUV curve](https://i.imgur.com/kKYReoW.png)
+
+## Parameters
+The curvit package has a set of parameters for which the users can set values. some of them have default values. 
+
+### Parameters common to both `makecurves` and `curve`
+
+* **events_list** - The name of the events list (`...l2ce.fits`). The string can also include the path to the file.
+
+* **radius** - The radius of the source aperture in pixels. This parameter has a default value of `6`.
+
+* **sky_radius** - The radius of the background aperture in pixels. The default value is `12`. 
+
+* **bwidth** - Time bin width in seconds. Default value is `50`. 
+
+* **framecount_per_sec** - Framerate, with a default value of `28.7185` frames per second for 512 x 512 window mode. The most accurate way to get the rate would be to take the value of (`1 / INT_TIME`). `INT_TIME` value can be found from the corresponding image header. Approximate values of framerate for different window modes of UVIT are given in the table below.
+
+| window mode | frames per second |
+| :---: | :---: |
+| 512 x 512 | 28.7 |
+| 350 x 350 | 61   |
+| 300 x 300 | 82   |
+| 250 x 250 | 115  |
+| 200 x 200 | 180  |
+| 150 x 150 | 300  |
+| 100 x 100 | 640  |
+
+> Note: It is important to set the correct value of framerate. But most of the UVIT observations are carried out in 512 x 512 window mode. 
+
+* **background_auto** - Takes either `yes` or `no`. This parameter decides whether the background is automatically calculated or not. The default value is `yes`. If you prefer to specify a region for background estimation, then give `no` as the input and specify **x_bg** (background X-coordinate) and **y_bg** (background Y-coordinate) parameters. 
+
+### Parameters only required for `makecurves`
+
+* **how_many** - The upper threshold for the number of sources to be auto-detected. The default value is `4`.
+
+### Parameters only required for `curve`
+
+* **xp** - X-coordinate of the source.
+
+* **yp** - Y-coordinate of the source.
+
+
