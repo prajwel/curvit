@@ -79,7 +79,7 @@ The sufixes of the FITS files has the following meaning.
 
 This structure of subdirectories shall repeat for all sets - `uvt_01`, `uvt_02`, `uvt_03`, etc.
 
-For the examples given below, we will be using FUV events list (`...l2ce.fits`) from `uvt_06` as input to **curvit**.  
+For the examples given below, we will be using FUV events list (`...l2ce.fits`) from `uvt_03` as input to **curvit**.  
 
 ### `makecurves`
 
@@ -128,6 +128,4 @@ plot: curve_2559_806_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
 
 Done!
 ```
-![FO Aqr FUV curve](FO_Aqr_FUV_curve.png)
-
-
+![FO Aqr FUV curve](https://i.imgur.com/kKYReoW.png)

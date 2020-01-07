@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="curvit", 
-    version="0.1.3",
+    version="0.1.5",
     author="Prajwel Joseph",
     author_email="prajwel.joseph@gmail.com",
     description="lightcurves from UVIT data",
