@@ -1,7 +1,7 @@
 # **curvit**
 > create lightcurves from UVIT data.
 
-**curvit** is an open-source python package to produce lightcurves from **UVIT (Ultraviolet Imaging Telescope)** data.  The events list from the **official UVIT L2 pipeline (version 5.6 onwards)** is required as in input to the package.  Other pipelines are not yet supported (*but do let me know about your requirement, we can figure something out!*). 
+Curvit is an open-source python package to produce lightcurves from UVIT (Ultraviolet Imaging Telescope) data.  The events list from the **official UVIT L2 pipeline (version 5.6 onwards)** is required as in input to the package.  Other pipelines are not yet supported (*but do let me know about your requirement, we can figure something out!*). 
 
 ## Installation
 Linux, OS X, and Windows:
@@ -11,7 +11,7 @@ pip install curvit --user
 
 ## Getting started
 
-**curvit**'s capabilities can be best demonstrated by examples. First, we need to get events list to be provided as input (an events list is a FITS file containing events). Go to ISSDC's [AstroBrowse website](https://astrobrowse.issdc.gov.in/astro_archive/archive/Home.jsp) and download UVIT data of your interest. Here, for example, the publicly available Level2 data of FO Aqr was chosen (Observation ID: `G06_084T01_9000000710`). 
+Curvit's capabilities can be best demonstrated by examples. First, we need to get events list to be provided as input (an events list is a FITS file containing events). Go to ISSDC's [AstroBrowse website](https://astrobrowse.issdc.gov.in/astro_archive/archive/Home.jsp) and download UVIT data of your interest. Here, for example, the publicly available Level2 data of FO Aqr was chosen (Observation ID: `G06_084T01_9000000710`). 
 
 This dataset, `LEVL2AS1UVT20161005G06_084T01_9000000710.zip`, is a compressed file which needs to be extracted. Once extracted, a directory named `20161005_G06_084T01_9000000710_level2` can be found. This directory has the following structure. 
 
@@ -79,11 +79,11 @@ The suffixes of the FITS files have the following meaning.
 
 This structure of subdirectories shall repeat for all sets - `uvt_01`, `uvt_02`, `uvt_03`, etc.
 
-For the examples given below, we will be using FUV events list (`...l2ce.fits`) from `uvt_03` as input to **curvit**.  
+For the examples given below, we will be using FUV events list (`...l2ce.fits`) from `uvt_03` as input to curvit.
 
 ### `makecurves`
 
-The `makecurves` function of **curvit** can automatically detect sources from events list and create light curves. 
+The `makecurves` function of curvit can automatically detect sources from events list and create light curves. Please note that curvit currently provides source coordinates only in the **instrument coordinate system**. 
 
 ``` python
 >>> import curvit
@@ -107,10 +107,11 @@ Region selected for background estimate:
 Done!
 
 ```
+> **IMPORTANT**: Zero-based indexing scheme is used in curvit. Therefore, if you open corresponding FITS image file in instrument coordinates in DS9, there will be a difference of 1 between the source coordinates in DS9 and curvit. For example, the curvit coordinates of (2559, 806) will become (2560, 807) in FITS convention. 
 
 ### `curve`
 
-If you already have the source coordinates, the `curve` function of **curvit** can be used to create lightcurves.
+If you already have the source coordinates, the `curve` function of curvit can be used to create lightcurves.
 
 ``` python
 >>> curvit.curve(events_list = 'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits', xp = 2559, yp = 806)
