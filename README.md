@@ -1,7 +1,7 @@
 # **curvit**
-> create lightcurves from UVIT data.
+> create light curves from UVIT data.
 
-Curvit is an open-source python package to produce lightcurves from UVIT (Ultraviolet Imaging Telescope) data.  The events list from the **official UVIT L2 pipeline (version 5.6 onwards)** is required as in input to the package.  Other pipelines are not yet supported (*but do let me know about your requirement, we can figure something out!*). 
+Curvit is an open-source python package to produce light curves from UVIT (Ultraviolet Imaging Telescope) data.  The events list from the **official UVIT L2 pipeline (version 5.6 onwards)** is required as in input to the package.  Other pipelines are not yet supported (*but do let me know about your requirement, we can figure something out!*). 
 
 ## Installation
 Linux, OS X, and Windows:
@@ -99,7 +99,7 @@ The estimated background CPS = 0.00277 +/-0.00062
 Region selected for background estimate:
 * background_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
 
----------------------- lightcurves ----------------------
+---------------------- light curves ----------------------
 * makecurves_2559_806_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
 * makecurves_3791_1555_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
 * makecurves_3317_1785_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
@@ -111,7 +111,7 @@ Done!
 
 ### `curve`
 
-If you already have the source coordinates, the `curve` function of curvit can be used to create lightcurves.
+If you already have the source coordinates, the `curve` function of curvit can be used to create light curves.
 
 ``` python
 >>> curvit.curve(events_list = 'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits', xp = 2559, yp = 806)

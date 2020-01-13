@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 
-'''A tool to plot light curves from UL2P events-file.
+'''Create light curves from UVIT data. 
 
 
    Copyright 2019 Prajwel Joseph
@@ -290,7 +290,7 @@ def makecurves(events_list = events_list,
                                          density = None)
 
     # selecting events within a circular region.
-    print('\n---------------------- lightcurves ----------------------')
+    print('\n---------------------- light curves ----------------------')
     plt.figure(figsize = (8, 5))
     for uaxy in uA:
         xp, yp = uaxy

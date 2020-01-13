@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.1.5",
     author="Prajwel Joseph",
     author_email="prajwel.joseph@gmail.com",
-    description="lightcurves from UVIT data",
+    description="light curves from UVIT data",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/prajwel/curvit",
