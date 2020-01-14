@@ -142,7 +142,7 @@ def makecurves(events_list = events_list,
     fyi = [int(round(s)) for s in fy]
     # Counting stuff to know who all are popular. 
     counter = Counter(zip(fxi, fyi))
-    A = np.array(list(zip(*counter.most_common(500)))[0])
+    A = np.array(list(zip(*counter.most_common(how_many * 100)))[0])
     # Sieving out the duplicates. 
     uA = []
     while len(A) != 0:
@@ -569,6 +569,4 @@ def curve(events_list = events_list,
 
     print("\nDone!\n")
     plt.close('all') 
-
-
 
