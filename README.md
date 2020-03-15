@@ -1,7 +1,7 @@
 # **curvit**
 > create light curves from UVIT data.
 
-Curvit is an open-source python package to produce light curves from UVIT (Ultraviolet Imaging Telescope) data.  The events list from the **official UVIT L2 pipeline (version 5.6 onwards)** is required as an input to the package.  Other pipelines are not yet supported (*but do let me know about your requirement, we can figure something out!*). 
+Curvit is an open-source python package to produce light curves from UVIT (Ultraviolet Imaging Telescope) data.  The events list from the **official UVIT L2 pipeline (version 6.3 onwards)** is required as an input to the package.  Old versions and other pipelines are not supported (*but do let me know about your requirement, we can figure something out!*). 
 
 ## Installation
 Linux, OS X, and Windows:
@@ -80,6 +80,8 @@ The suffixes of the FITS files have the following meaning.
 This structure of subdirectories shall repeat for all sets - `uvt_01`, `uvt_02`, `uvt_03`, etc.
 
 For the examples given below, we will be using FUV events list (`...l2ce.fits`) from `uvt_03` as input to curvit.
+
+> **IMPORTANT**: The Level2 directory structure and FITS file naming conventions here explained are for the Level2 data of 6.3 version obtained from ISSDC. Always refer the `README.txt` included along with the Level2 data to understand the data structure.
 
 ### `makecurves`
 
