@@ -102,7 +102,33 @@ def tobe_or_notobe(time, FrameCount, bwidth, framecount_per_sec):
     fc_time_width = (FrameCount.max() - FrameCount.min()) / float(framecount_per_sec)
     fc_time_end = fc_time_width + fc_time_start
     nbin = (fc_time_end - fc_time_start) / bwidth
-    return int(nbin)    
+    return int(nbin) 
+
+# To create subset images. 
+def create_sub_image(pos_x, pos_y, 
+                     sub_size, 
+                     cir_rad, 
+                     sub_name,
+                     fx, fy,
+                     path_to_events_list,
+                     events_list):
+
+    obj_xy = [(obj_x, obj_y) for obj_x, obj_y 
+              in zip(fx, fy) 
+              if pos_x - sub_size <= obj_x <= pos_x + sub_size
+                  and pos_y - sub_size <= obj_y <= pos_y + sub_size]
+
+    obj_fx = np.array(obj_xy)[:,0]
+    obj_fy = np.array(obj_xy)[:,1]
+    obj_circle = plt.Circle((pos_x, pos_y), cir_rad, 
+                            color = 'k', fill = False)
+
+    plt.hist2d(obj_fx, obj_fy, bins = sub_size*2, norm = LogNorm())
+    plt.gcf().gca().add_artist(obj_circle)
+    source_png_name = os.path.join(path_to_events_list, sub_name + events_list + '.png')
+    plt.savefig(source_png_name, format = 'png', bbox_inches = 'tight')
+    plt.clf()
+    return source_png_name     
  
 def makecurves(events_list = events_list,
                radius = radius,
@@ -221,28 +247,15 @@ def makecurves(events_list = events_list,
     plt.savefig( png_name, format = 'png', bbox_inches = 'tight')
     plt.clf()
 
-    print('Detected sources are plotted in the image:\n* {}'.format(png_name))
-
-    # To create smaller background image.
-    def create_sub_image(pos_x, pos_y, sub_size, cir_rad, sub_name):
-        obj_xy = [(obj_x, obj_y) for obj_x, obj_y 
-                  in zip(fx, fy) 
-                  if pos_x - sub_size <= obj_x <= pos_x + sub_size
-                      and pos_y - sub_size <= obj_y <= pos_y + sub_size]
-
-        obj_fx = np.array(obj_xy)[:,0]
-        obj_fy = np.array(obj_xy)[:,1]
-        obj_circle = plt.Circle((pos_x, pos_y), cir_rad, 
-                                color = 'k', fill = False)
-
-        plt.hist2d(obj_fx, obj_fy, bins = sub_size*2, norm = LogNorm())
-        plt.gcf().gca().add_artist(obj_circle)
-        source_png_name = os.path.join(path_to_events_list, sub_name + events_list + '.png')
-        plt.savefig(source_png_name, format = 'png', bbox_inches = 'tight')
-        plt.clf()
-        return source_png_name     
+    print('Detected sources are plotted in the image:\n* {}'.format(png_name))   
         
-    bg_png = create_sub_image(x_bg, y_bg, sub_fig_size, sky_radius, 'background_')
+    bg_png = create_sub_image(x_bg, y_bg, 
+                              sub_fig_size, 
+                              sky_radius, 
+                              'background_',
+                              fx, fy,
+                              path_to_events_list,
+                              events_list)
 
     # For estimating background counts.
     F_b = [Fn_b for xx_b, yy_b, Fn_b in zip(fx, fy, FrameCount)
@@ -433,30 +446,23 @@ def curve(events_list = events_list,
     plt.gcf().gca().add_artist(bg_circle)
     png_name = os.path.join(path_to_events_list, 'source_' + events_list + '.png')
     plt.savefig(png_name, format = 'png', bbox_inches = 'tight')
-    plt.clf()
-
-
-    # To create smaller source and background images.
-    def create_sub_image(pos_x, pos_y, sub_size, cir_rad, sub_name):
-        obj_xy = [(obj_x, obj_y) for obj_x, obj_y 
-                  in zip(fx, fy) 
-                  if pos_x - sub_size <= obj_x <= pos_x + sub_size
-                      and pos_y - sub_size <= obj_y <= pos_y + sub_size]
-
-        obj_fx = np.array(obj_xy)[:,0]
-        obj_fy = np.array(obj_xy)[:,1]
-        obj_circle = plt.Circle((pos_x, pos_y), cir_rad, 
-                                color = 'k', fill = False)
-
-        plt.hist2d(obj_fx, obj_fy, bins = sub_size*2, norm = LogNorm())
-        plt.gcf().gca().add_artist(obj_circle)
-        source_png_name = os.path.join(path_to_events_list, sub_name + events_list + ".png")
-        plt.savefig(source_png_name, format = 'png', bbox_inches = 'tight')
-        plt.clf()
-        return source_png_name         
+    plt.clf()     
         
-    source_png = create_sub_image(xp, yp, sub_fig_size, radius, 'source_zoomed_')
-    bg_png = create_sub_image(x_bg, y_bg, sub_fig_size, sky_radius, 'background_')
+    source_png = create_sub_image(xp, yp, 
+                                  sub_fig_size, 
+                                  radius, 
+                                  'source_zoomed_',
+                                  fx, fy,
+                                  path_to_events_list,
+                                  events_list)
+
+    bg_png = create_sub_image(x_bg, y_bg, 
+                              sub_fig_size, 
+                              sky_radius, 
+                              'background_',
+                              fx, fy,
+                              path_to_events_list,
+                              events_list)
 
     # For estimating background counts.
     F_b = [Fn_b for xx_b, yy_b, Fn_b in zip(fx, fy, FrameCount)
