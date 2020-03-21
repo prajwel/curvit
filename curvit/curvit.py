@@ -128,7 +128,30 @@ def create_sub_image(pos_x, pos_y,
     source_png_name = os.path.join(path_to_events_list, sub_name + events_list + '.png')
     plt.savefig(source_png_name, format = 'png', bbox_inches = 'tight')
     plt.clf()
-    return source_png_name     
+    return source_png_name  
+
+# To automatically estimate background region.
+def auto_bg(fx, fy): 
+    lowres_counts, lowres_xedges, \
+    lowres_yedges, lowres_Image = plt.hist2d(fx, fy, 
+                                             bins = 256, 
+                                             norm = LogNorm())
+
+    lowres_xcentres = (lowres_xedges[:-1] + lowres_xedges[1:]) / 2.
+    lowres_ycentres = (lowres_yedges[:-1] + lowres_yedges[1:]) / 2.
+    flat_counts = lowres_counts.flatten()
+    x_mesh, y_mesh = np.meshgrid(lowres_ycentres, lowres_xcentres) #Notice the swap.
+    x_mesh = x_mesh.flatten() 
+    y_mesh = y_mesh.flatten()
+    # To avoid the edges. 
+    polished_array = [(lr_count, xm_p, ym_p) for lr_count, xm_p, ym_p
+                      in zip(lowres_counts.flatten(), x_mesh, y_mesh)
+                      if ((xm_p - 2400) ** 2 + (ym_p - 2400) ** 2) <= 1800 ** 2]
+
+    sorted_counts = sorted(polished_array)
+    five_percent = int(0.05 * len(sorted_counts))
+    r_count, x_bg, y_bg = random.choice(sorted_counts[:five_percent])
+    return lowres_Image, r_count, x_bg, y_bg   
  
 def makecurves(events_list = events_list,
                radius = radius,
@@ -191,43 +214,18 @@ def makecurves(events_list = events_list,
         print('No sources, try increasing the "how_many" parameter.')
         return
     
-    # To avoid sources at the edges. 
-#    uA = [(X_p, Y_p) for X_p, Y_p in uA 
-#          if ((X_p - 2400)**2 + (Y_p - 2400)**2) <= 2000**2]
     coo_file = os.path.join(path_to_events_list, 'sources_' + events_list +'.coo')
     np.savetxt(coo_file, uA, fmt = '%4.f\t%4.f')
-#    print("\nDetected sources inside a circle of radius 2000 pixels\
-#           \naround the approximate image centre of (2400, 2400).\n")	
-#    for i in np.array(uA):
-#        print(i)
     print('\nDetected source coordinates saved in file:\n* {}'.format(coo_file))
 
     # To automatically estimate background region.
     plt.figure(figsize = (10.5, 10))
     if background_auto == 'yes':
-        lowres_counts, lowres_xedges, \
-        lowres_yedges, lowres_Image = plt.hist2d(fx, fy, 
-                                                 bins = 256, 
-                                                 norm = LogNorm())
-
-        lowres_xcentres = (lowres_xedges[:-1] + lowres_xedges[1:]) / 2.
-        lowres_ycentres = (lowres_yedges[:-1] + lowres_yedges[1:]) / 2.
-        flat_counts = lowres_counts.flatten()
-        x_mesh, y_mesh = np.meshgrid(lowres_ycentres, lowres_xcentres) #Notice the swap.
-        x_mesh = x_mesh.flatten() 
-        y_mesh = y_mesh.flatten()
-        # To avoid the edges. 
-        polished_array = [(lr_count, xm_p, ym_p) for lr_count, xm_p, ym_p
-                          in zip(lowres_counts.flatten(), x_mesh, y_mesh)
-                          if ((xm_p - 2400) ** 2 + (ym_p - 2400) ** 2) <= 1800 ** 2]
-
-        sorted_counts = sorted(polished_array)
-        five_percent = int(0.05 * len(sorted_counts))
-        r_count, x_bg, y_bg = random.choice(sorted_counts[:five_percent])
-
+        lowres_Image, r_count, x_bg, y_bg = auto_bg(fx, fy)
+        plt.gcf().gca().add_artist(lowres_Image)
        
     # To create a quick look figure marking sources and background.
-    if whole_figure_resolution != 256 or background_auto == 'no':  #Just to avoid doing this twice.
+    if whole_figure_resolution != 256 or background_auto == 'no':  # To avoid doing this twice.
         plt.hist2d(fx, fy, bins = whole_figure_resolution, 
                    norm = LogNorm())
 
@@ -407,27 +405,9 @@ def curve(events_list = events_list,
     # To automatically estimate background region.
     plt.figure(figsize = (10.5, 10))
     if background_auto == 'yes':
-        lowres_counts, lowres_xedges, \
-        lowres_yedges, lowres_Image = plt.hist2d(fx, fy, 
-                                                 bins = 256, 
-                                                 norm = LogNorm())
-
-        lowres_xcentres = (lowres_xedges[:-1] + lowres_xedges[1:]) / 2.
-        lowres_ycentres = (lowres_yedges[:-1] + lowres_yedges[1:]) / 2.
-        flat_counts = lowres_counts.flatten()
-        x_mesh, y_mesh = np.meshgrid(lowres_ycentres, lowres_xcentres) #Notice the swap.
-        x_mesh = x_mesh.flatten() 
-        y_mesh = y_mesh.flatten()
-        # To avoid the edges. 
-        polished_array = [(lr_count, xm_p, ym_p) for lr_count, xm_p, ym_p
-                          in zip(lowres_counts.flatten(), x_mesh, y_mesh)
-                          if ((xm_p - 2400) ** 2 + (ym_p - 2400) ** 2) <= 1800 ** 2]
-
-        sorted_counts = sorted(polished_array)
-        five_percent = int(0.05 * len(sorted_counts))
-        r_count, x_bg, y_bg = random.choice(sorted_counts[:five_percent])
+        lowres_Image, r_count, x_bg, y_bg = auto_bg(fx, fy)
+        plt.gcf().gca().add_artist(lowres_Image)
         
-
     # To create a quick look figure marking source and background.
     if whole_figure_resolution != 256 or background_auto == 'no':  #Just to avoid doing this twice.
         plt.hist2d(fx, fy, bins = whole_figure_resolution, 
