@@ -168,6 +168,30 @@ def bg_count_estimate(fx, fy, FrameCount, x_bg, y_bg, sky_radius):
    
     return scaled_events, scaled_events_e
 
+# To find positions of interest (positions with maximum events).
+def detect_sources(fx, fy, how_many):
+    fxi = [int(round(s)) for s in fx]
+    fyi = [int(round(s)) for s in fy]
+    # Counting stuff to know who all are popular. 
+    counter = Counter(zip(fxi, fyi))
+    A = np.array(list(zip(*counter.most_common(how_many * 100)))[0])
+    # Sieving out the duplicates. 
+    uA = []
+    while len(A) != 0:
+        uA.append(A[0]) 
+        A = np.array([x for x in A 
+                      if x not in A[KDTree(A).query_ball_point(uA[-1], 15)]])
+
+    uA = np.array(uA)[:how_many]
+
+    if len(uA) != 0:
+        # To avoid sources which have coordinates 0 or 4800.
+        mask = np.isin(uA, [0, 4800], invert = True)
+        mask = mask[:, 0] * mask[:, 1]
+        uA = uA[mask]
+
+    return uA
+
 def makecurves(events_list = events_list,
                radius = radius,
                how_many = how_many,
@@ -188,42 +212,24 @@ def makecurves(events_list = events_list,
     fx = f[1].data['Fx']
     fy = f[1].data['Fy']
 
+    if how_many == 0:
+        print('\nThe "how_many" parameter is set at 0. Please increase.\n')
+        return
+
     nbin_check = tobe_or_notobe(time = time, 
                                 FrameCount = FrameCount, 
                                 bwidth = bwidth,
                                 framecount_per_sec = framecount_per_sec)
 
     if nbin_check < 1:
-        print('\nThe events list contain little data OR check bwidth parameter.\n')
+        print('\nThe events list contain little data OR check "bwidth" parameter.\n')
         return
 
     original_input = events_list
     path_to_events_list, events_list = ntpath.split(events_list)
     events_list = modify_string(events_list)
 
-    # To find positions of interest (positions with maximum events).
-    fxi = [int(round(s)) for s in fx]
-    fyi = [int(round(s)) for s in fy]
-    # Counting stuff to know who all are popular. 
-    counter = Counter(zip(fxi, fyi))
-    A = np.array(list(zip(*counter.most_common(how_many * 100)))[0])
-    # Sieving out the duplicates. 
-    uA = []
-    while len(A) != 0:
-        uA.append(A[0]) 
-        A = np.array([x for x in A 
-                      if x not in A[KDTree(A).query_ball_point(uA[-1], 15)]])
-
-    uA = np.array(uA)[:how_many]
-
-    if len(uA) == 0:
-        print('No sources, try increasing the "how_many" parameter.')
-        return
-
-    # To avoid sources which have coordinates 0 or 4800.
-    mask = np.isin(uA, [0, 4800], invert = True)
-    mask = mask[:, 0] * mask[:, 1]
-    uA = uA[mask]
+    uA = detect_sources(fx, fy, how_many)
 
     if len(uA) == 0:
         print('No sources, try increasing the "how_many" parameter.')
