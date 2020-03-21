@@ -130,7 +130,7 @@ def create_sub_image(pos_x, pos_y,
     plt.clf()
     return source_png_name  
 
-# To automatically estimate background region.
+# To automatically choose background region.
 def auto_bg(fx, fy): 
     lowres_counts, lowres_xedges, \
     lowres_yedges, lowres_Image = plt.hist2d(fx, fy, 
@@ -152,7 +152,22 @@ def auto_bg(fx, fy):
     five_percent = int(0.05 * len(sorted_counts))
     r_count, x_bg, y_bg = random.choice(sorted_counts[:five_percent])
     return lowres_Image, r_count, x_bg, y_bg   
- 
+
+# To estimate background counts.
+def bg_count_estimate(fx, fy, FrameCount, x_bg, y_bg, sky_radius):
+
+    F_b = [Fn_b for xx_b, yy_b, Fn_b in zip(fx, fy, FrameCount)
+               if ((xx_b - x_bg)**2 + (yy_b - y_bg)**2) <= sky_radius**2]
+
+    if len(F_b) != 0:
+        scaled_events = (len(F_b) * radius**2) / float(sky_radius**2)
+        scaled_events_e = (np.sqrt(len(F_b)) * radius**2) / float(sky_radius**2)
+    else:
+        scaled_events = 0
+        scaled_events_e = 0
+   
+    return scaled_events, scaled_events_e
+
 def makecurves(events_list = events_list,
                radius = radius,
                how_many = how_many,
@@ -218,7 +233,7 @@ def makecurves(events_list = events_list,
     np.savetxt(coo_file, uA, fmt = '%4.f\t%4.f')
     print('\nDetected source coordinates saved in file:\n* {}'.format(coo_file))
 
-    # To automatically estimate background region.
+    # To automatically choose background region.
     plt.figure(figsize = (10.5, 10))
     if background_auto == 'yes':
         lowres_Image, r_count, x_bg, y_bg = auto_bg(fx, fy)
@@ -256,15 +271,8 @@ def makecurves(events_list = events_list,
                               events_list)
 
     # For estimating background counts.
-    F_b = [Fn_b for xx_b, yy_b, Fn_b in zip(fx, fy, FrameCount)
-               if ((xx_b - x_bg)**2 + (yy_b - y_bg)**2) <= sky_radius**2]
-
-    if len(F_b) != 0:
-        scaled_events = (len(F_b) * radius**2) / float(sky_radius**2)
-        scaled_events_e = (np.sqrt(len(F_b)) * radius**2) / float(sky_radius**2)
-    else:
-        scaled_events = 0
-        scaled_events_e = 0
+    scaled_events, scaled_events_e = bg_count_estimate(fx, fy, FrameCount, 
+                                                       x_bg, y_bg, sky_radius)
 
     # Converting FrameCounts array (the ones inside aperture) to time array.
     fc_time_start = time.min()
@@ -402,7 +410,7 @@ def curve(events_list = events_list,
     path_to_events_list, events_list = ntpath.split(events_list)
     events_list = modify_string(events_list)
 
-    # To automatically estimate background region.
+    # To automatically choose background region.
     plt.figure(figsize = (10.5, 10))
     if background_auto == 'yes':
         lowres_Image, r_count, x_bg, y_bg = auto_bg(fx, fy)
@@ -445,15 +453,8 @@ def curve(events_list = events_list,
                               events_list)
 
     # For estimating background counts.
-    F_b = [Fn_b for xx_b, yy_b, Fn_b in zip(fx, fy, FrameCount)
-               if ((xx_b - x_bg)**2 + (yy_b - y_bg)**2) <= sky_radius**2]
-
-    if len(F_b) != 0:
-        scaled_events = (len(F_b) * radius**2) / float(sky_radius**2)
-        scaled_events_e = (np.sqrt(len(F_b)) * radius**2) / float(sky_radius**2)
-    else:
-        scaled_events = 0
-        scaled_events_e = 0
+    scaled_events, scaled_events_e = bg_count_estimate(fx, fy, FrameCount, 
+                                                       x_bg, y_bg, sky_radius)
 
     # selecting events within a circular region.
     F = [Fn for xx, yy, Fn 
