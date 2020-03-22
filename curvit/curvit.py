@@ -90,12 +90,14 @@ fontsize = 9 #fontsize for plots
 #######################################################################
 
 
-def modify_string(events_list):
-    if events_list[-5:] == '.fits':
-        events_list = events_list[:-5]
-    if events_list[-8:] == '.fits.gz':
-        events_list = events_list[:-8]
-    return events_list
+def read_columns(events_list):
+    # Reading few columns.
+    f = fits.open(events_list)
+    time = f[1].data['MJD_L2']
+    FrameCount = f[1].data['FrameCount']
+    fx = f[1].data['Fx']
+    fy = f[1].data['Fy']
+    return time, FrameCount, fx, fy
 
 def tobe_or_notobe(time, FrameCount, bwidth, framecount_per_sec):
     fc_time_start = time.min()
@@ -104,31 +106,12 @@ def tobe_or_notobe(time, FrameCount, bwidth, framecount_per_sec):
     nbin = (fc_time_end - fc_time_start) / bwidth
     return int(nbin) 
 
-# To create subset images. 
-def create_sub_image(pos_x, pos_y, 
-                     sub_size, 
-                     cir_rad, 
-                     sub_name,
-                     fx, fy,
-                     path_to_events_list,
-                     events_list):
-
-    obj_xy = [(obj_x, obj_y) for obj_x, obj_y 
-              in zip(fx, fy) 
-              if pos_x - sub_size <= obj_x <= pos_x + sub_size
-                  and pos_y - sub_size <= obj_y <= pos_y + sub_size]
-
-    obj_fx = np.array(obj_xy)[:,0]
-    obj_fy = np.array(obj_xy)[:,1]
-    obj_circle = plt.Circle((pos_x, pos_y), cir_rad, 
-                            color = 'k', fill = False)
-
-    plt.hist2d(obj_fx, obj_fy, bins = sub_size*2, norm = LogNorm())
-    plt.gcf().gca().add_artist(obj_circle)
-    source_png_name = os.path.join(path_to_events_list, sub_name + events_list + '.png')
-    plt.savefig(source_png_name, format = 'png', bbox_inches = 'tight')
-    plt.clf()
-    return source_png_name  
+def modify_string(events_list):
+    if events_list[-5:] == '.fits':
+        events_list = events_list[:-5]
+    if events_list[-8:] == '.fits.gz':
+        events_list = events_list[:-8]
+    return events_list
 
 # To automatically choose background region.
 def auto_bg(fx, fy): 
@@ -168,6 +151,32 @@ def bg_count_estimate(fx, fy, FrameCount, x_bg, y_bg, sky_radius):
    
     return scaled_events, scaled_events_e
 
+# To create subset images. 
+def create_sub_image(pos_x, pos_y, 
+                     sub_size, 
+                     cir_rad, 
+                     sub_name,
+                     fx, fy,
+                     path_to_events_list,
+                     events_list):
+
+    obj_xy = [(obj_x, obj_y) for obj_x, obj_y 
+              in zip(fx, fy) 
+              if pos_x - sub_size <= obj_x <= pos_x + sub_size
+                  and pos_y - sub_size <= obj_y <= pos_y + sub_size]
+
+    obj_fx = np.array(obj_xy)[:,0]
+    obj_fy = np.array(obj_xy)[:,1]
+    obj_circle = plt.Circle((pos_x, pos_y), cir_rad, 
+                            color = 'k', fill = False)
+
+    plt.hist2d(obj_fx, obj_fy, bins = sub_size*2, norm = LogNorm())
+    plt.gcf().gca().add_artist(obj_circle)
+    source_png_name = os.path.join(path_to_events_list, sub_name + events_list + '.png')
+    plt.savefig(source_png_name, format = 'png', bbox_inches = 'tight')
+    plt.clf()
+    return source_png_name  
+
 # To find positions of interest (positions with maximum events).
 def detect_sources(fx, fy, how_many):
     fxi = [int(round(s)) for s in fx]
@@ -189,7 +198,7 @@ def detect_sources(fx, fy, how_many):
         mask = np.isin(uA, [0, 4800], invert = True)
         mask = mask[:, 0] * mask[:, 1]
         uA = uA[mask]
-
+        
     return uA
 
 def makecurves(events_list = events_list,
@@ -205,12 +214,7 @@ def makecurves(events_list = events_list,
                sub_fig_size = sub_fig_size, 
                fontsize = fontsize):
 
-    # Reading few columns.
-    f = fits.open(events_list)
-    time = f[1].data['MJD_L2']
-    FrameCount = f[1].data['FrameCount']
-    fx = f[1].data['Fx']
-    fy = f[1].data['Fy']
+    time, FrameCount, fx, fy = read_columns(events_list)
 
     if how_many == 0:
         print('\nThe "how_many" parameter is set at 0. Please increase.\n')
@@ -371,8 +375,6 @@ def makecurves(events_list = events_list,
         empty_space = (till_here - fc_time_start) / 25.0
         plt.xlim(fc_time_start - empty_space, till_here + empty_space)
 
-#        median_time = np.median(framecount_time)
-#        figname = 'makecurves_' + str(xp) + '_' + str(yp) + '_' + events_list + '_' + str(median_time) + ".png"
         figname = os.path.join(path_to_events_list, 'makecurves_' + str(xp) + '_' + str(yp) + '_' + events_list + '.png')
         plt.savefig(figname, format = 'png', bbox_inches = 'tight', dpi = 150)
         print('* {}'.format(figname))
@@ -397,12 +399,7 @@ def curve(events_list = events_list,
           sub_fig_size = sub_fig_size,
           fontsize = fontsize):
 
-    # Reading few columns.
-    f = fits.open(events_list)
-    time = f[1].data['MJD_L2']
-    FrameCount = f[1].data['FrameCount']
-    fx = f[1].data['Fx']
-    fy = f[1].data['Fy']
+    time, FrameCount, fx, fy = read_columns(events_list)
 
     nbin_check = tobe_or_notobe(time = time, 
                                 FrameCount = FrameCount, 
