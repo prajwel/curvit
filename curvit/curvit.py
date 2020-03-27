@@ -94,16 +94,14 @@ def read_columns(events_list):
     # Reading few columns.
     f = fits.open(events_list)
     time = f[1].data['MJD_L2']
-    FrameCount = f[1].data['FrameCount']
     fx = f[1].data['Fx']
     fy = f[1].data['Fy']
-    return time, FrameCount, fx, fy
+    return time, fx, fy
 
-def tobe_or_notobe(time, FrameCount, bwidth, framecount_per_sec):
-    fc_time_start = time.min()
-    fc_time_width = (FrameCount.max() - FrameCount.min()) / float(framecount_per_sec)
-    fc_time_end = fc_time_width + fc_time_start
-    nbin = (fc_time_end - fc_time_start) / bwidth
+def tobe_or_notobe(time, bwidth):
+    nbin = (time.max() - time.min()) / bwidth
+    if int(nbin) < 1:
+        print('\nThe events list contain little data OR check bwidth parameter.\n')
     return int(nbin) 
 
 def modify_string(events_list):
@@ -136,20 +134,25 @@ def auto_bg(fx, fy):
     r_count, x_bg, y_bg = random.choice(sorted_counts[:five_percent])
     return lowres_Image, r_count, x_bg, y_bg   
 
-# To estimate background counts.
-def bg_count_estimate(fx, fy, FrameCount, x_bg, y_bg, sky_radius):
+# To estimate background CPS.
+def bg_estimate(fx, fy, time, framecount_per_sec, x_bg, y_bg, sky_radius):
 
-    F_b = [Fn_b for xx_b, yy_b, Fn_b in zip(fx, fy, FrameCount)
-               if ((xx_b - x_bg)**2 + (yy_b - y_bg)**2) <= sky_radius**2]
+    time_b = [t_b for xx_b, yy_b, t_b in zip(fx, fy, time)
+                      if ((xx_b - x_bg)**2 + (yy_b - y_bg)**2) <= sky_radius**2]
 
-    if len(F_b) != 0:
-        scaled_events = (len(F_b) * radius**2) / float(sky_radius**2)
-        scaled_events_e = (np.sqrt(len(F_b)) * radius**2) / float(sky_radius**2)
+    if len(time_b) != 0:
+        scaled_events = (len(time_b) * radius**2) / float(sky_radius**2)
+        scaled_events_e = (np.sqrt(len(time_b)) * radius**2) / float(sky_radius**2)
     else:
         scaled_events = 0
         scaled_events_e = 0
-   
-    return scaled_events, scaled_events_e
+
+    unique_time = np.unique(time)
+    Number_of_frames = float(len(unique_time))
+    bg_CPS = (scaled_events * framecount_per_sec) / Number_of_frames
+    bg_CPS_e = (scaled_events_e * framecount_per_sec) / Number_of_frames
+
+    return bg_CPS, bg_CPS_e
 
 # To create subset images. 
 def create_sub_image(pos_x, pos_y, 
@@ -201,6 +204,25 @@ def detect_sources(fx, fy, how_many):
         
     return uA
 
+def get_counts(fx, fy, time, xp, yp, radius):
+    # selecting events within a circular region.
+    T = [t for xx, yy, t in zip(fx, fy, time) 
+         if ((xx - xp)**2 +(yy - yp)**2) <= radius**2]
+
+    # To find Counts per Frame (CPF).
+    unique_time = np.unique(time)
+    Number_of_frames = float(len(unique_time))
+    Counts_in_aperture = len(T)
+    CPF = Counts_in_aperture / Number_of_frames
+    CPF_err = np.sqrt(Counts_in_aperture) / Number_of_frames
+    return CPF, CPF_err
+
+# To change mission elapsed time in seconds to modified julian date.
+def met_to_mjd(met):
+    jan2010 = 55197.0  # 2010.0(UTC) expressed with MJD format and scale UTC.
+    mjd = (met / 86400.0) + jan2010  # 1 julian day = 86400 seconds.
+    return mjd
+
 def makecurves(events_list = events_list,
                radius = radius,
                how_many = how_many,
@@ -214,19 +236,14 @@ def makecurves(events_list = events_list,
                sub_fig_size = sub_fig_size, 
                fontsize = fontsize):
 
-    time, FrameCount, fx, fy = read_columns(events_list)
+    time, fx, fy = read_columns(events_list)
 
     if how_many == 0:
-        print('\nThe "how_many" parameter is set at 0. Please increase.\n')
+        print('\nThe "how_many" parameter is set at 0.\n')
         return
 
-    nbin_check = tobe_or_notobe(time = time, 
-                                FrameCount = FrameCount, 
-                                bwidth = bwidth,
-                                framecount_per_sec = framecount_per_sec)
-
+    nbin_check = tobe_or_notobe(time, bwidth)
     if nbin_check < 1:
-        print('\nThe events list contain little data OR check "bwidth" parameter.\n')
         return
 
     original_input = events_list
@@ -280,42 +297,27 @@ def makecurves(events_list = events_list,
                               path_to_events_list,
                               events_list)
 
-    # For estimating background counts.
-    scaled_events, scaled_events_e = bg_count_estimate(fx, fy, FrameCount, 
-                                                       x_bg, y_bg, sky_radius)
-
-    # Converting FrameCounts array (the ones inside aperture) to time array.
-    fc_time_start = time.min()
-    fc_time_width = (FrameCount.max() - FrameCount.min()) / float(framecount_per_sec)
-    fc_time_end = fc_time_width + fc_time_start
-    # Converting FrameCounts array (note that np.unique is used) to time array.
-    framecount_array = (np.unique(FrameCount) - FrameCount.min()) / float(framecount_per_sec)  
-    framecount_time = framecount_array + fc_time_start
-
     # To estimate Background CPS.
-    unique_FrameCount = np.unique(FrameCount)
-    Number_of_frames = float(len(unique_FrameCount))
-    bg_CPS = (scaled_events * framecount_per_sec) / Number_of_frames
-    bg_CPS_e = (scaled_events_e * framecount_per_sec) / Number_of_frames
+    bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, framecount_per_sec, x_bg, y_bg, sky_radius)
     print('\nThe estimated background CPS = {:.5f} +/-{:.5f}'.format(bg_CPS, bg_CPS_e))
     print('Region selected for background estimate:\n* {}'.format(bg_png))
 
     # Calculating number of bins.
-    nbin = (fc_time_end - fc_time_start) / bwidth
+    time_width = time.max() - time.min() 
+    nbin = time_width / bwidth
     nbin = int(nbin)
 
-    # End time of the bin range.
-    till_here = fc_time_start + (bwidth * nbin)
+    unique_time = np.unique(time)
+    till_here = time.min() + (bwidth * nbin)
 
-    # Changing mission elapsed time in seconds to modified julian date. 
-    jan2010 = 55197.0  # 2010.0(UTC) expressed with MJD format and scale UTC.
-    till_here = (till_here / 86400.0) + jan2010
-    fc_time_start = (fc_time_start / 86400.0) + jan2010
-    framecount_time = (np.array(framecount_time) / 86400.0) + jan2010
+    # Changing mission elapsed time in seconds to modified julian date.
+    till_here = met_to_mjd(till_here)
+    time_start = met_to_mjd(time.min())
+    unique_time = met_to_mjd(unique_time)
 
     # Getting the number of unique frames within a bin.
-    u_counts, u_bin_edges = np.histogram(framecount_time, bins = nbin,
-                                         range = (fc_time_start, till_here),
+    u_counts, u_bin_edges = np.histogram(unique_time, bins = nbin,
+                                         range = (time_start, till_here),
                                          density = None)
 
     # selecting events within a circular region.
@@ -323,16 +325,11 @@ def makecurves(events_list = events_list,
     plt.figure(figsize = (8, 5))
     for uaxy in uA:
         xp, yp = uaxy
-        F = [Fn for xx, yy, Fn 
-             in zip(fx, fy, FrameCount) 
-             if ((xx - xp)**2 +(yy - yp)**2) <= radius**2]
-        
-        # Converting FrameCounts array to time array
-        fc_time = (np.array(F) - FrameCount.min()) / float(framecount_per_sec)
-        fc_time = fc_time + time.min()
+        T = np.array([t for xx, yy, t 
+                         in zip(fx, fy, time)
+                         if ((xx - xp)**2 +(yy - yp)**2) <= radius**2])
 
-        # Changing mission elapsed time in seconds to modified julian date. 
-        fc_time = (np.array(fc_time) / 86400.0) + jan2010  # 1 julian day = 86400 seconds
+        T = met_to_mjd(T)        
 
         plt.title("X = %s, Y = %s, bin = %ss, radius = %spx" \
                   %(xp, yp, bwidth, radius), fontsize = fontsize)
@@ -340,8 +337,9 @@ def makecurves(events_list = events_list,
         plt.xlabel("Time (Julian Date)", fontsize = fontsize)
         plt.ylabel("Counts per second", fontsize = fontsize)
         plt.tick_params(axis = 'both', labelsize = fontsize)
-        counts,bin_edges = np.histogram(fc_time, bins = nbin, 
-                                        range = (fc_time_start, till_here),
+
+        counts,bin_edges = np.histogram(T, bins = nbin, 
+                                        range = (time_start, till_here),
                                         density = None)    
 
         bin_centres = (bin_edges[:-1] + bin_edges[1:]) / 2.
@@ -372,10 +370,11 @@ def makecurves(events_list = events_list,
 
         plt.scatter(mcentres, CPS)
         plt.errorbar(mcentres, CPS, yerr = CPS_err, linestyle = "None")
-        empty_space = (till_here - fc_time_start) / 25.0
-        plt.xlim(fc_time_start - empty_space, till_here + empty_space)
+        empty_space = (till_here - time_start) / 25.0
+        plt.xlim(time_start - empty_space, till_here + empty_space)
 
-        figname = os.path.join(path_to_events_list, 'makecurves_' + str(xp) + '_' + str(yp) + '_' + events_list + '.png')
+        output_prefix = 'makecurves_' + str(xp) + '_' + str(yp) + '_' + events_list
+        figname = os.path.join(path_to_events_list, output_prefix + '.png')
         plt.savefig(figname, format = 'png', bbox_inches = 'tight', dpi = 150)
         print('* {}'.format(figname))
         
@@ -399,15 +398,10 @@ def curve(events_list = events_list,
           sub_fig_size = sub_fig_size,
           fontsize = fontsize):
 
-    time, FrameCount, fx, fy = read_columns(events_list)
+    time, fx, fy = read_columns(events_list)
 
-    nbin_check = tobe_or_notobe(time = time, 
-                                FrameCount = FrameCount, 
-                                bwidth = bwidth,
-                                framecount_per_sec = framecount_per_sec)
-
+    nbin_check = tobe_or_notobe(time, bwidth)
     if nbin_check < 1:
-        print('\nThe events list contain little data OR check bwidth parameter.\n')
         return
 
     path_to_events_list, events_list = ntpath.split(events_list)
@@ -420,7 +414,7 @@ def curve(events_list = events_list,
         plt.gcf().gca().add_artist(lowres_Image)
         
     # To create a quick look figure marking source and background.
-    if whole_figure_resolution != 256 or background_auto == 'no':  #Just to avoid doing this twice.
+    if whole_figure_resolution != 256 or background_auto == 'no':  # To avoid doing this twice.
         plt.hist2d(fx, fy, bins = whole_figure_resolution, 
                    norm = LogNorm())
 
@@ -455,46 +449,29 @@ def curve(events_list = events_list,
                               path_to_events_list,
                               events_list)
 
-    # For estimating background counts.
-    scaled_events, scaled_events_e = bg_count_estimate(fx, fy, FrameCount, 
-                                                       x_bg, y_bg, sky_radius)
-
-    # selecting events within a circular region.
-    F = [Fn for xx, yy, Fn 
-            in zip(fx, fy, FrameCount)
-            if ((xx - xp)**2 +(yy - yp)**2) <= radius**2]
-            
-    # Converting FrameCounts array (the ones inside aperture) to time array.
-    fc_time_start = time.min()
-    fc_time_array = (np.array(F) - FrameCount.min()) / float(framecount_per_sec)
-    fc_time = fc_time_array + fc_time_start
-    fc_time_width = (FrameCount.max() - FrameCount.min()) / float(framecount_per_sec)
-    fc_time_end = fc_time_width + fc_time_start
-    # Converting FrameCounts array (note that np.unique is used) to time array.
-    framecount_array = (np.unique(FrameCount) - FrameCount.min()) / float(framecount_per_sec)  
-    framecount_time = framecount_array + fc_time_start
-
     # To estimate Background CPS.
-    unique_FrameCount = np.unique(FrameCount)
-    Number_of_frames = float(len(unique_FrameCount))
-    bg_CPS = (scaled_events * framecount_per_sec) / Number_of_frames
-    bg_CPS_e = (scaled_events_e * framecount_per_sec) / Number_of_frames
-    print("\nThe estimated background CPS = {:.5f} +/-{:.5f}".format(bg_CPS, bg_CPS_e))
+    bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, framecount_per_sec, x_bg, y_bg, sky_radius)
+    print('\nThe estimated background CPS = {:.5f} +/-{:.5f}'.format(bg_CPS, bg_CPS_e))
     print('Region selected for background estimate:\n* {}'.format(bg_png))
 
+    # selecting events within a circular region.
+    T = np.array([t for xx, yy, t 
+                     in zip(fx, fy, time)
+                     if ((xx - xp)**2 +(yy - yp)**2) <= radius**2])
+
     # Calculating number of bins.
-    nbin = fc_time_width / bwidth
+    time_width = time.max() - time.min() 
+    nbin = time_width / bwidth
     nbin = int(nbin)
 
-    # End time of the bin range.
-    till_here = fc_time_start + (bwidth * nbin)
+    unique_time = np.unique(time)
+    till_here = time.min() + (bwidth * nbin)
 
     # Changing mission elapsed time in seconds to modified julian date.
-    jan2010 = 55197.0  # 2010.0(UTC) expressed with MJD format and scale UTC.
-    fc_time = (np.array(fc_time) / 86400.0) + jan2010  # 1 julian day = 86400 seconds.
-    till_here = (till_here / 86400.0) + jan2010
-    fc_time_start = (fc_time_start / 86400.0) + jan2010
-    framecount_time = (np.array(framecount_time) / 86400.0) + jan2010
+    T = met_to_mjd(T)
+    till_here = met_to_mjd(till_here)
+    time_start = met_to_mjd(time.min())
+    unique_time = met_to_mjd(unique_time)
 
     # Binning stuff, plotting stuff.
     plt.figure(figsize = (8, 5))
@@ -502,12 +479,13 @@ def curve(events_list = events_list,
     plt.xlabel("Time (Julian Date)", fontsize = fontsize)
     plt.ylabel("Counts per second", fontsize = fontsize)
     plt.tick_params(axis = 'both', labelsize = fontsize)
-    counts, bin_edges = np.histogram(fc_time, bins = nbin,
-                                     range = (fc_time_start, till_here),
+
+    counts, bin_edges = np.histogram(T, bins = nbin,
+                                     range = (time_start, till_here),
                                      density = None)
 
-    u_counts, u_bin_edges = np.histogram(framecount_time, bins = nbin,
-                                         range = (fc_time_start, till_here),
+    u_counts, u_bin_edges = np.histogram(unique_time, bins = nbin,
+                                         range = (time_start, till_here),
                                          density = None)
 
     bin_centres = (bin_edges[:-1] + bin_edges[1:]) / 2.
@@ -539,17 +517,18 @@ def curve(events_list = events_list,
     plt.scatter(mcentres, CPS)
     plt.errorbar(mcentres, CPS, yerr = CPS_err, linestyle = "None")
     # To make the plot look good.
-    empty_space = (till_here - fc_time_start) / 25.0
-    plt.xlim(fc_time_start - empty_space, till_here + empty_space)
+    empty_space = (till_here - time_start) / 25.0
+    plt.xlim(time_start - empty_space, till_here + empty_space)
 
     #To write the array to output.
     data_to_output = list(zip(mcentres, CPS, CPS_err))
-    datname = os.path.join(path_to_events_list, 'curve_' + str(xp) + '_' + str(yp) + '_' + events_list + '.dat')
+    output_prefix = 'curve_' + str(xp) + '_' + str(yp) + '_' + events_list
+    datname = os.path.join(path_to_events_list, output_prefix + '.dat')
     np.savetxt(datname, data_to_output,
                fmt = '%10.11f\t%.5e\t%.5e',
                header = 'MJD\t\t\tCPS (bin=%ss)\tCPS_error' %bwidth)
 
-    figname = os.path.join(path_to_events_list, 'curve_' + str(xp) + '_' + str(yp) + '_' + events_list + '.png')
+    figname = os.path.join(path_to_events_list, output_prefix + '.png')
     plt.savefig(figname, format = 'png', bbox_inches = 'tight', dpi = 150)
 
     print('\n-------------------------- curve --------------------------')
