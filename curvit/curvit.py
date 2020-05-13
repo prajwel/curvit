@@ -119,10 +119,13 @@ def modify_string(events_list):
     return events_list
 
 # To automatically choose background region.
-def auto_bg(fx, fy): 
+def auto_bg(fx, fy, photons, framecount_per_sec): 
+    weights = photons / framecount_per_sec    
+
     lowres_counts, lowres_xedges, \
     lowres_yedges, lowres_Image = plt.hist2d(fx, fy, 
-                                             bins = 256, 
+                                             bins = 256,
+                                             weights = weights,
                                              norm = LogNorm())
 
     lowres_xcentres = (lowres_xedges[:-1] + lowres_xedges[1:]) / 2.
@@ -133,7 +136,7 @@ def auto_bg(fx, fy):
     y_mesh = y_mesh.flatten()
     # To avoid the edges. 
     polished_array = [(lr_count, xm_p, ym_p) for lr_count, xm_p, ym_p
-                      in zip(lowres_counts.flatten(), x_mesh, y_mesh)
+                      in zip(flat_counts, x_mesh, y_mesh)
                       if ((xm_p - 2400) ** 2 + (ym_p - 2400) ** 2) <= 1800 ** 2]
 
     sorted_counts = sorted(polished_array)
@@ -142,13 +145,16 @@ def auto_bg(fx, fy):
     return lowres_Image, r_count, x_bg, y_bg   
 
 # To estimate background CPS.
-def bg_estimate(fx, fy, time, framecount_per_sec, x_bg, y_bg, sky_radius):
+def bg_estimate(fx, fy, time, photons, framecount_per_sec, x_bg, y_bg, sky_radius):
+    weights = photons / framecount_per_sec    
 
-    time_b = [t_b for xx_b, yy_b, t_b in zip(fx, fy, time)
-                      if ((xx_b - x_bg)**2 + (yy_b - y_bg)**2) <= sky_radius**2]
+    time_b_and_weights = [(t_b, w) for xx_b, yy_b, t_b, w in zip(fx, fy, time, weights)
+                                    if ((xx_b - x_bg)**2 + (yy_b - y_bg)**2) <= sky_radius**2]
+
+    time_b, weights = np.array(time_b_and_weights).T
 
     if len(time_b) != 0:
-        scaled_events = (len(time_b) * radius**2) / float(sky_radius**2)
+        scaled_events = (np.sum(weights) * radius**2) / float(sky_radius**2)
         scaled_events_e = (np.sqrt(len(time_b)) * radius**2) / float(sky_radius**2)
     else:
         scaled_events = 0
@@ -276,7 +282,7 @@ def makecurves(events_list = events_list,
     # To automatically choose background region.
     plt.figure(figsize = (10.5, 10))
     if background_auto == 'yes':
-        lowres_Image, r_count, x_bg, y_bg = auto_bg(fx, fy)
+        lowres_Image, r_count, x_bg, y_bg = auto_bg(fx, fy, photons, framecount_per_sec)
         plt.gcf().gca().add_artist(lowres_Image)
        
     # To create a quick look figure marking sources and background.
@@ -311,7 +317,8 @@ def makecurves(events_list = events_list,
                               events_list)
 
     # To estimate Background CPS.
-    bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, framecount_per_sec, x_bg, y_bg, sky_radius)
+    bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, photons, 
+                                   framecount_per_sec, x_bg, y_bg, sky_radius)
     print('\nThe estimated background CPS = {:.5f} +/-{:.5f}'.format(bg_CPS, bg_CPS_e))
     print('Region selected for background estimate:\n* {}'.format(bg_png))
 
@@ -423,7 +430,7 @@ def curve(events_list = events_list,
     # To automatically choose background region.
     plt.figure(figsize = (10.5, 10))
     if background_auto == 'yes':
-        lowres_Image, r_count, x_bg, y_bg = auto_bg(fx, fy)
+        lowres_Image, r_count, x_bg, y_bg = auto_bg(fx, fy, photons, framecount_per_sec)
         plt.gcf().gca().add_artist(lowres_Image)
         
     # To create a quick look figure marking source and background.
@@ -463,7 +470,8 @@ def curve(events_list = events_list,
                               events_list)
 
     # To estimate Background CPS.
-    bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, framecount_per_sec, x_bg, y_bg, sky_radius)
+    bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, photons, 
+                                   framecount_per_sec, x_bg, y_bg, sky_radius)
     print('\nThe estimated background CPS = {:.5f} +/-{:.5f}'.format(bg_CPS, bg_CPS_e))
     print('Region selected for background estimate:\n* {}'.format(bg_png))
 
