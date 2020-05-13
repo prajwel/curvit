@@ -146,16 +146,16 @@ def auto_bg(fx, fy, photons, framecount_per_sec):
 
 # To estimate background CPS.
 def bg_estimate(fx, fy, time, photons, framecount_per_sec, x_bg, y_bg, sky_radius):
+
     weights = photons / framecount_per_sec    
+    T_W = [(t_b, w) for xx_b, yy_b, t_b, w in zip(fx, fy, time, weights)
+                     if ((xx_b - x_bg)**2 + (yy_b - y_bg)**2) <= sky_radius**2]
 
-    time_b_and_weights = [(t_b, w) for xx_b, yy_b, t_b, w in zip(fx, fy, time, weights)
-                                    if ((xx_b - x_bg)**2 + (yy_b - y_bg)**2) <= sky_radius**2]
+    T, W = np.array(T_W).T
 
-    time_b, weights = np.array(time_b_and_weights).T
-
-    if len(time_b) != 0:
-        scaled_events = (np.sum(weights) * radius**2) / float(sky_radius**2)
-        scaled_events_e = (np.sqrt(len(time_b)) * radius**2) / float(sky_radius**2)
+    if len(T) != 0:
+        scaled_events = (np.sum(W) * radius**2) / float(sky_radius**2)
+        scaled_events_e = (np.sqrt(len(T)) * radius**2) / float(sky_radius**2)
     else:
         scaled_events = 0
         scaled_events_e = 0
@@ -221,17 +221,20 @@ def detect_sources(fx, fy, how_many, depth):
         
     return uA
 
-def get_counts(fx, fy, time, xp, yp, radius):
+def get_counts(fx, fy, time, photons, framecount_per_sec, xp, yp, radius):
+
+    weights = photons / framecount_per_sec    
     # selecting events within a circular region.
-    T = [t for xx, yy, t in zip(fx, fy, time) 
-         if ((xx - xp)**2 +(yy - yp)**2) <= radius**2]
+    T_W = [(t, w) for xx, yy, t, w in zip(fx, fy, time, weights) 
+                   if ((xx - xp)**2 +(yy - yp)**2) <= radius**2]
+
+    T, W = np.array(T_W).T 
 
     # To find Counts per Frame (CPF).
     unique_time = np.unique(time)
     Number_of_frames = float(len(unique_time))
-    Counts_in_aperture = len(T)
-    CPF = Counts_in_aperture / Number_of_frames
-    CPF_err = np.sqrt(Counts_in_aperture) / Number_of_frames
+    CPF = np.sum(W) / Number_of_frames
+    CPF_err = np.sqrt(len(T)) / Number_of_frames
     return CPF, CPF_err
 
 # To change mission elapsed time in seconds to modified julian date.
@@ -255,6 +258,7 @@ def makecurves(events_list = events_list,
                fontsize = fontsize):
 
     time, fx, fy, photons = read_columns(events_list)
+    weights = photons / framecount_per_sec
 
     if how_many == 0:
         print('\nThe "how_many" parameter is set at 0.\n')
@@ -287,7 +291,8 @@ def makecurves(events_list = events_list,
        
     # To create a quick look figure marking sources and background.
     if whole_figure_resolution != 256 or background_auto == 'no':  # To avoid doing this twice.
-        plt.hist2d(fx, fy, bins = whole_figure_resolution, 
+        plt.hist2d(fx, fy, bins = whole_figure_resolution,
+                   weights = weights, 
                    norm = LogNorm())
 
     for u in uA:
@@ -337,18 +342,18 @@ def makecurves(events_list = events_list,
 
     # Getting the number of unique frames within a bin.
     u_counts, u_bin_edges = np.histogram(unique_time, bins = nbin,
-                                         range = (time_start, till_here),
-                                         density = None)
+                                         range = (time_start, till_here))
 
     # selecting events within a circular region.
     print('\n---------------------- light curves ----------------------')
     plt.figure(figsize = (8, 5))
     for uaxy in uA:
         xp, yp = uaxy
-        T = np.array([t for xx, yy, t 
-                         in zip(fx, fy, time)
-                         if ((xx - xp)**2 +(yy - yp)**2) <= radius**2])
+        T_W = np.array([(t, w) for xx, yy, t, w 
+                                in zip(fx, fy, time, weights)
+                                if ((xx - xp)**2 +(yy - yp)**2) <= radius**2])
 
+        T, W = np.array(T_W).T 
         T = met_to_mjd(T)        
 
         plt.title("X = %s, Y = %s, bin = %ss, radius = %spx" \
@@ -358,28 +363,30 @@ def makecurves(events_list = events_list,
         plt.ylabel("Counts per second", fontsize = fontsize)
         plt.tick_params(axis = 'both', labelsize = fontsize)
 
-        counts,bin_edges = np.histogram(T, bins = nbin, 
-                                        range = (time_start, till_here),
-                                        density = None)    
+        weighted_counts, bin_edges = np.histogram(T, bins = nbin, 
+                                                  range = (time_start, till_here),
+                                                  weights = W)    
+
+        counts, _ = np.histogram(T, bins = nbin, 
+                                 range = (time_start, till_here))
 
         bin_centres = (bin_edges[:-1] + bin_edges[1:]) / 2.
 
         if np.array_equal(bin_edges, u_bin_edges) == True:
-            mbmcuc = [(mb, mc, float(uc)) for mb, mc, uc 
-                      in zip(bin_centres, counts, u_counts) if mc != 0]
+            hisdata = [(mb, mc, mwc, uc) for mb, mwc, mc, uc 
+                       in zip(bin_centres, weighted_counts, counts, u_counts) 
+                       if mc != 0]
         else:
-            print('\nWhoa! What happened?\n')
+            print('\nThis happens when bwidth is too small\n')
             return
 
-        if len(mbmcuc) != 0:
-            mcentres, mcounts, frames_in_bin = zip(*mbmcuc)
+        if len(hisdata) != 0:
+            mcentres, weighted_mcounts, mcounts, frames_in_bin = np.array(hisdata).T
         else:
             print('No counts for the source at %s' %uaxy)
             continue
 
-        mcentres = np.array(mcentres)
-
-        CPF = np.array(mcounts) / frames_in_bin
+        CPF = weighted_mcounts / frames_in_bin
         CPF_err = np.sqrt(mcounts) / frames_in_bin
         CPS = CPF * framecount_per_sec
         CPS_err = CPF_err * framecount_per_sec
@@ -419,6 +426,7 @@ def curve(events_list = events_list,
           fontsize = fontsize):
 
     time, fx, fy, photons = read_columns(events_list)
+    weights = photons / framecount_per_sec
 
     nbin_check = tobe_or_notobe(time, bwidth)
     if nbin_check < 1:
@@ -436,6 +444,7 @@ def curve(events_list = events_list,
     # To create a quick look figure marking source and background.
     if whole_figure_resolution != 256 or background_auto == 'no':  # To avoid doing this twice.
         plt.hist2d(fx, fy, bins = whole_figure_resolution, 
+                   weights = weights,
                    norm = LogNorm())
 
     plt.annotate("Source", (xp, yp), 
@@ -476,9 +485,11 @@ def curve(events_list = events_list,
     print('Region selected for background estimate:\n* {}'.format(bg_png))
 
     # selecting events within a circular region.
-    T = np.array([t for xx, yy, t 
-                     in zip(fx, fy, time)
-                     if ((xx - xp)**2 +(yy - yp)**2) <= radius**2])
+    T_W = np.array([(t, w) for xx, yy, t, w 
+                            in zip(fx, fy, time, weights)
+                            if ((xx - xp)**2 +(yy - yp)**2) <= radius**2])
+
+    T, W = np.array(T_W).T 
 
     # Calculating number of bins.
     time_width = time.max() - time.min() 
@@ -501,31 +512,32 @@ def curve(events_list = events_list,
     plt.ylabel("Counts per second", fontsize = fontsize)
     plt.tick_params(axis = 'both', labelsize = fontsize)
 
-    counts, bin_edges = np.histogram(T, bins = nbin,
-                                     range = (time_start, till_here),
-                                     density = None)
-
     u_counts, u_bin_edges = np.histogram(unique_time, bins = nbin,
-                                         range = (time_start, till_here),
-                                         density = None)
+                                         range = (time_start, till_here))
+
+    weighted_counts, bin_edges = np.histogram(T, bins = nbin, 
+                                              range = (time_start, till_here),
+                                              weights = W)    
+
+    counts, _ = np.histogram(T, bins = nbin, 
+                             range = (time_start, till_here))
 
     bin_centres = (bin_edges[:-1] + bin_edges[1:]) / 2.
 
     if np.array_equal(bin_edges, u_bin_edges) == True:
-        mbmcuc = [(mb, mc, float(uc)) for mb, mc, uc
-                  in zip(bin_centres, counts, u_counts) 
-                  if mc != 0]
+            hisdata = [(mb, mc, mwc, uc) for mb, mwc, mc, uc 
+                       in zip(bin_centres, weighted_counts, counts, u_counts) 
+                       if mc != 0]
     else:
-        print('\nWhoa! What happened?\n')
+        print('\nThis happens when bwidth is too small\n')
         return
 
-    if len(mbmcuc) != 0:
-        mcentres, mcounts, frames_in_bin = zip(*mbmcuc)
+    if len(hisdata) != 0:
+        mcentres, weighted_mcounts, mcounts, frames_in_bin = np.array(hisdata).T
     else:
         print('No counts inside the aperture!')
 
-    mcentres = np.array(mcentres)
-    CPF = np.array(mcounts) / frames_in_bin
+    CPF = weighted_mcounts / frames_in_bin
     CPF_err = np.sqrt(mcounts) / frames_in_bin
     CPS = CPF * framecount_per_sec
     CPS_err = CPF_err * framecount_per_sec
