@@ -66,8 +66,9 @@ sky_radius = 12 # radius of background aperture in pixels.
 bwidth = 50 # bin width in seconds, change as you please. 
 framecount_per_sec = 28.7185  # 28.7185 frames / second for 512x512 mode.
 
-# The how_many is only required for makecurves. 
+# The following is only required for makecurves. 
 how_many = 4 # number of objects to be auto-detected.
+depth = 1 #To bin pixels to improve signal.
 
 # The coordinates are only required for curves.
 xp = 2000
@@ -96,12 +97,13 @@ def read_columns(events_list):
     time = f[1].data['MJD_L2']
     fx = f[1].data['Fx']
     fy = f[1].data['Fy']
-    return time, fx, fy
+    photons = f[1].data['EFFECTIVE_NUM_PHOTONS']
+    return time, fx, fy, photons
 
 def tobe_or_notobe(time, bwidth):
     nbin = (time.max() - time.min()) / bwidth
     if int(nbin) < 1:
-        print('\nThe events list contain little data OR check bwidth parameter.\n')
+        print('\nEvents list contain little data OR check bwidth parameter.\n')
     return int(nbin) 
 
 def modify_string(events_list):
@@ -181,20 +183,27 @@ def create_sub_image(pos_x, pos_y,
     return source_png_name  
 
 # To find positions of interest (positions with maximum events).
-def detect_sources(fx, fy, how_many):
+def detect_sources(fx, fy, photons, how_many, depth):
+    mask = photons > 0
+    fx = fx[mask]
+    fy = fy[mask]
+    fx = fx / depth
+    fy = fy / depth
     fxi = [int(round(s)) for s in fx]
     fyi = [int(round(s)) for s in fy]
     # Counting stuff to know who all are popular. 
     counter = Counter(zip(fxi, fyi))
-    A = np.array(list(zip(*counter.most_common(how_many * 100)))[0])
+    most_common_limit = int(100 * how_many / (depth ** 2))
+    A = np.array(list(zip(*counter.most_common(most_common_limit)))[0])
     # Sieving out the duplicates. 
     uA = []
     while len(A) != 0:
         uA.append(A[0]) 
         A = np.array([x for x in A 
-                      if x not in A[KDTree(A).query_ball_point(uA[-1], 15)]])
+                      if x not in A[KDTree(A).query_ball_point(uA[-1], 16 / depth)]])
 
     uA = np.array(uA)[:how_many]
+    uA = uA * depth
 
     if len(uA) != 0:
         # To avoid sources which have coordinates 0 or 4800.
@@ -226,6 +235,7 @@ def met_to_mjd(met):
 def makecurves(events_list = events_list,
                radius = radius,
                how_many = how_many,
+               depth = depth,
                bwidth = bwidth,
                framecount_per_sec = framecount_per_sec,
                background_auto = background_auto,
@@ -236,7 +246,7 @@ def makecurves(events_list = events_list,
                sub_fig_size = sub_fig_size, 
                fontsize = fontsize):
 
-    time, fx, fy = read_columns(events_list)
+    time, fx, fy, photons = read_columns(events_list)
 
     if how_many == 0:
         print('\nThe "how_many" parameter is set at 0.\n')
@@ -250,7 +260,8 @@ def makecurves(events_list = events_list,
     path_to_events_list, events_list = ntpath.split(events_list)
     events_list = modify_string(events_list)
 
-    uA = detect_sources(fx, fy, how_many)
+    depth = 1
+    uA = detect_sources(fx, fy, photons, how_many, depth)
 
     if len(uA) == 0:
         print('No sources, try increasing the "how_many" parameter.')
@@ -398,7 +409,7 @@ def curve(events_list = events_list,
           sub_fig_size = sub_fig_size,
           fontsize = fontsize):
 
-    time, fx, fy = read_columns(events_list)
+    time, fx, fy, photons = read_columns(events_list)
 
     nbin_check = tobe_or_notobe(time, bwidth)
     if nbin_check < 1:
