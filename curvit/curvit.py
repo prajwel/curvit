@@ -98,6 +98,11 @@ def read_columns(events_list):
     fx = f[1].data['Fx']
     fy = f[1].data['Fy']
     photons = f[1].data['EFFECTIVE_NUM_PHOTONS']
+    mask = photons > 0 
+    time = time[mask]
+    fx = fx[mask]
+    fy = fy[mask]
+    photons = photons[mask]
     return time, fx, fy, photons
 
 def tobe_or_notobe(time, bwidth):
@@ -183,10 +188,7 @@ def create_sub_image(pos_x, pos_y,
     return source_png_name  
 
 # To find positions of interest (positions with maximum events).
-def detect_sources(fx, fy, photons, how_many, depth):
-    mask = photons > 0
-    fx = fx[mask]
-    fy = fy[mask]
+def detect_sources(fx, fy, how_many, depth):
     fx = fx / depth
     fy = fy / depth
     fxi = [int(round(s)) for s in fx]
@@ -261,7 +263,7 @@ def makecurves(events_list = events_list,
     events_list = modify_string(events_list)
 
     depth = 1
-    uA = detect_sources(fx, fy, photons, how_many, depth)
+    uA = detect_sources(fx, fy, how_many, depth)
 
     if len(uA) == 0:
         print('No sources, try increasing the "how_many" parameter.')
