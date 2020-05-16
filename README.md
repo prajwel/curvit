@@ -110,7 +110,7 @@ Region selected for background estimate:
 Done!
 
 ```
-> **IMPORTANT**: Zero-based indexing scheme is used in curvit. Therefore, if you open corresponding FITS image file in instrument coordinates in DS9, there will be a difference of 1 between the source coordinates in DS9 and curvit. For example, the curvit coordinates of (2559, 806) will become (2560, 807) in FITS convention. 
+> **IMPORTANT**: Zero-based indexing scheme is used in curvit. Therefore, if you open corresponding FITS image file in instrument coordinates (`...I_l2img.fits`) in DS9, there will be a difference of 1 between the source coordinates in DS9 and curvit. For example, the curvit coordinates of (2559, 806) will become (2560, 807) in FITS convention. 
 
 ### `curve`
 
