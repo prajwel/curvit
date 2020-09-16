@@ -21,7 +21,7 @@
 
 import matplotlib
 # Force matplotlib to not use any Xwindows backend.
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 
 import os
 import sys
@@ -29,21 +29,14 @@ import ntpath
 import random
 import numpy as np
 import matplotlib.pyplot as plt
+
 from glob import glob
 from astropy.io import fits
 from collections import Counter
 from scipy.spatial import KDTree
+from scipy.interpolate import interp1d
 from matplotlib.colors import LogNorm
 
-
-#def get_eventsfile():
-#    if len(glob('*ce.fits')) == 1:
-#        events_list = glob('*ce.fits')[0]
-#    elif len(glob('*ce.fits.gz')) == 1:
-#        events_list = glob('*ce.fits.gz')[0] #events file
-#    else:
-#        events_list = ''
-#    return events_list
  
 #######################################################################
 # Initial set of parameters.
@@ -84,10 +77,40 @@ background_auto = 'yes'  # 'yes' or 'no'.
 x_bg = 2100 # background X-coordinate.
 y_bg = 1812 # background Y-coordinate.
 
+
+'''The following parameters determines whether corrections are 
+applied to the CPF. They are aperture-correction and
+saturation-correction.'''
+aperture_correction = None # valid inputs are None/fuv/nuv.
+saturation_correction = 'no' # 'yes' or 'no'.
+
+
 # Following parameters need not be changed (unless you want to).
 whole_figure_resolution = 256 # resolution of full figure.
 sub_fig_size = 40 # size of sub figure.
-fontsize = 9 #fontsize for plots
+fontsize = 9 #fontsize for plots.
+
+# Encircled energy data (https://doi.org/10.3847/1538-3881/ab72a3).
+radius_pixels = np.array([ 1.5, 2, 2.5, 3, 4,
+                           5, 7, 9, 12, 15, 
+                           20, 30, 40, 50, 70, 
+                           80, 95 ])
+
+nuv_energy_percentage = np.array([ 29.9, 42.0, 52.0, 59.3, 68.8,  
+                                   74.5, 81.3, 85.1, 89.3, 92.1,  
+                                   95.2, 97.6, 98.4, 98.8, 99.4,  
+                                   99.6, 100.0 ])
+
+fuv_energy_percentage = np.array([ 28.1, 40.7, 51.1, 59.1, 68.9,
+                                   74.6, 81.4, 85.0, 88.6, 91.3,  
+                                   94.5, 96.9, 97.7, 98.3, 99.1,  
+                                   99.5, 100.0 ])
+                                   
+#ratio = measured CPF / actual CPF
+nuv_ratio = nuv_energy_percentage / 100.
+fuv_ratio = fuv_energy_percentage / 100.
+fuv_ratio_function = interp1d(radius_pixels, fuv_ratio, kind = 'cubic')
+nuv_ratio_function = interp1d(radius_pixels, nuv_ratio, kind = 'cubic')
 #######################################################################
 
 
@@ -243,6 +266,48 @@ def met_to_mjd(met):
     mjd = (met / 86400.0) + jan2010  # 1 julian day = 86400 seconds.
     return mjd
 
+def apply_aperture_correction(CPF, CPF_err, radius, aperture_correction):
+    if 1.5 <= radius <= 95:
+        pass
+    else:
+        print('\nThe "radius" parameter should be in the range {1.5, 95}')
+        return 
+    if aperture_correction == 'fuv':
+        CPF = CPF / fuv_ratio_function(radius)
+        CPF_err = CPF_err / fuv_ratio_function(radius)
+    elif aperture_correction == 'nuv':
+        CPF = CPF / nuv_ratio_function(radius)
+        CPF_err = CPF_err / nuv_ratio_function(radius)
+    elif aperture_correction == None:
+        pass
+    else:
+        print('\nCheck the "aperture_correction" parameter')
+        return    
+    return CPF, CPF_err
+    
+def apply_saturation_correction(CPF5, CPF5_err, saturation_correction):
+    if np.sum(CPF5 >= 0.6) != 0:
+        print("\nCounts per frame exeeds 0.6; saturation correction cannot be applied")
+        return
+    if saturation_correction == 'no':
+        pass
+    elif saturation_correction == 'yes':        
+        ICPF5 = -1 * np.log(1 - CPF5)
+        ICPF5_err = CPF5_err / CPF5
+        
+        ICORR = ICPF5 - CPF5
+        ICORR_err = np.sqrt((ICPF5_err ** 2) + (CPF5_err ** 2))
+        
+        RCORR = ICORR * (0.89 - (0.30 * (ICORR ** 2)))
+        RCORR_err = RCORR * np.sqrt((ICORR_err ** 2) + ((0.30 * 2 * ICORR * ICORR_err) ** 2))
+        
+        CPF5 = CPF5 + RCORR
+        CPF5_err = np.sqrt((CPF5_err ** 2) + (RCORR_err ** 2))       
+    else:
+        print('\nCheck the "saturation_correction" parameter')
+        return
+    return CPF5, CPF5_err
+
 def makecurves(events_list = events_list,
                radius = radius,
                how_many = how_many,
@@ -253,6 +318,8 @@ def makecurves(events_list = events_list,
                sky_radius = sky_radius,
                x_bg = x_bg,
                y_bg = y_bg,
+               aperture_correction = aperture_correction,
+               saturation_correction = saturation_correction,
                whole_figure_resolution = whole_figure_resolution,
                sub_fig_size = sub_fig_size, 
                fontsize = fontsize):
@@ -388,12 +455,17 @@ def makecurves(events_list = events_list,
 
         CPF = weighted_mcounts / frames_in_bin
         CPF_err = np.sqrt(mcounts) / frames_in_bin
+        
+        # Background subtraction.
+        CPF = CPF - (bg_CPS / framecount_per_sec)
+        CPF_err = np.sqrt(CPF_err ** 2 + (bg_CPS / framecount_per_sec) ** 2)   
+
+        CPF, CPF_err = apply_aperture_correction(CPF, CPF_err, radius, aperture_correction)
+        CPF, CPF_err = apply_saturation_correction(CPF, CPF_err, saturation_correction)
+
+        
         CPS = CPF * framecount_per_sec
         CPS_err = CPF_err * framecount_per_sec
-
-        #Background subtraction.
-        CPS = CPS - bg_CPS    
-        CPS_err = np.sqrt(CPS_err**2 + bg_CPS_e**2)
 
         plt.scatter(mcentres, CPS)
         plt.errorbar(mcentres, CPS, yerr = CPS_err, linestyle = "None")
@@ -410,7 +482,6 @@ def makecurves(events_list = events_list,
     print('\nDone!\n')
     plt.close('all')
 
-
 def curve(events_list = events_list,
           xp = xp,
           yp = yp,
@@ -421,6 +492,8 @@ def curve(events_list = events_list,
           sky_radius = sky_radius,
           x_bg = x_bg,
           y_bg = y_bg,
+          aperture_correction = aperture_correction,
+          saturation_correction = saturation_correction,
           whole_figure_resolution = whole_figure_resolution,
           sub_fig_size = sub_fig_size,
           fontsize = fontsize):
@@ -539,12 +612,16 @@ def curve(events_list = events_list,
 
     CPF = weighted_mcounts / frames_in_bin
     CPF_err = np.sqrt(mcounts) / frames_in_bin
+    
+    # Background subtraction.
+    CPF = CPF - (bg_CPS / framecount_per_sec)
+    CPF_err = np.sqrt(CPF_err ** 2 + (bg_CPS / framecount_per_sec) ** 2)    
+
+    CPF, CPF_err = apply_aperture_correction(CPF, CPF_err, radius, aperture_correction)
+    CPF, CPF_err = apply_saturation_correction(CPF, CPF_err, saturation_correction)
+    
     CPS = CPF * framecount_per_sec
     CPS_err = CPF_err * framecount_per_sec
-
-    # Background subtraction.
-    CPS = CPS - bg_CPS
-    CPS_err = np.sqrt(CPS_err**2 + bg_CPS_e**2)
 
     # Let us get on with the plot. 
     plt.scatter(mcentres, CPS)
