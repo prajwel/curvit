@@ -147,7 +147,7 @@ The curvit package has a set of parameters for which the users can set values. s
 
 * **bwidth** - Time bin width in seconds. Default value is `50`. 
 
-* **framecount_per_sec** - Framerate, with a default value of `28.7185` frames per second for 512 x 512 window mode. The most accurate way to get the rate would be to take the value of (`1 / INT_TIME`). `INT_TIME` value can be found from the corresponding image header. Approximate values of framerate for different window modes of UVIT are given in the table below.
+* **framecount_per_sec** - Framerate, with a default value of `28.7185` frames per second for 512 x 512 window mode. The most accurate way to get the framerate would be to take the value of (`1 / INT_TIME`). `INT_TIME` value can be found from the corresponding image header. Approximate values of framerate for different window modes of UVIT are given in the table below.
 
 | window mode | frames per second |
 | :---: | :---: |
@@ -162,6 +162,11 @@ The curvit package has a set of parameters for which the users can set values. s
 > Note: It is important to set the correct value of framerate. But most of the UVIT observations are carried out in 512 x 512 window mode. 
 
 * **background_auto** - Takes either `yes` or `no`. This parameter decides whether the background is automatically calculated or not. The default value is `yes`. If you prefer to specify a region for background estimation, then give `no` as the input and specify **x_bg** (background X-coordinate) and **y_bg** (background Y-coordinate) parameters. 
+
+* **aperture_correction** - Valid inputs are `None`, `fuv`, and `nuv`. The default value is `None`. The parameter value can be changed to either `fuv` or `nuv` to apply aperture corrections to the light curve data. 
+
+* **saturation_correction** - Takes either `yes` or `no`. The default value is `no`. If the parameter is set to `yes`, saturation correction is applied to the light curve data. 
+
 
 ### Parameters only required for `makecurves`
 
