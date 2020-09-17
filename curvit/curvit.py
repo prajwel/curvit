@@ -21,7 +21,7 @@
 
 import matplotlib
 # Force matplotlib to not use any Xwindows backend.
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 
 import os
 import sys
@@ -458,7 +458,7 @@ def makecurves(events_list = events_list,
         
         # Background subtraction.
         CPF = CPF - (bg_CPS / framecount_per_sec)
-        CPF_err = np.sqrt(CPF_err ** 2 + (bg_CPS / framecount_per_sec) ** 2)   
+        CPF_err = np.sqrt(CPF_err ** 2 + (bg_CPS_e / framecount_per_sec) ** 2)   
 
         CPF, CPF_err = apply_aperture_correction(CPF, CPF_err, radius, aperture_correction)
         CPF, CPF_err = apply_saturation_correction(CPF, CPF_err, saturation_correction)
@@ -615,7 +615,7 @@ def curve(events_list = events_list,
     
     # Background subtraction.
     CPF = CPF - (bg_CPS / framecount_per_sec)
-    CPF_err = np.sqrt(CPF_err ** 2 + (bg_CPS / framecount_per_sec) ** 2)    
+    CPF_err = np.sqrt(CPF_err ** 2 + (bg_CPS_e / framecount_per_sec) ** 2)    
 
     CPF, CPF_err = apply_aperture_correction(CPF, CPF_err, radius, aperture_correction)
     CPF, CPF_err = apply_saturation_correction(CPF, CPF_err, saturation_correction)
