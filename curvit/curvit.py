@@ -64,18 +64,19 @@ how_many = 4 # number of objects to be auto-detected.
 depth = 1 #To bin pixels to improve signal.
 
 # The coordinates are only required for curves.
-xp = 2000
-yp = 2000
+xp = None
+yp = None
 
-'''The following parameter determines how the background is determined.
-If you prefer to manually specify a region where there are no stars, 
-then give 'no' as the value. Otherwise, you can provide 'yes' and
-background region will be automatically selected.'''
-background_auto = 'yes'  # 'yes' or 'no'.
+'''The following parameter affects how the background estimation is done.
+The default value is 'None' and no background estimate is carried out.
+If you prefer to manually specify a background region, then give 'manual' 
+as the value. Also, you can provide 'auto' and background region 
+will be automatically selected.'''
+background = None  # valid inputs are None/manual/auto.
 
 # If 'no', PLEASE FILL the following.
-x_bg = 2100 # background X-coordinate.
-y_bg = 1812 # background Y-coordinate.
+x_bg = None # background X-coordinate.
+y_bg = None # background Y-coordinate.
 
 
 '''The following parameters determines whether corrections are 
@@ -128,11 +129,28 @@ def read_columns(events_list):
     photons = photons[mask]
     return time, fx, fy, photons
 
-def tobe_or_notobe(time, bwidth):
-    nbin = (time.max() - time.min()) / bwidth
-    if int(nbin) < 1:
+def tobe_or_notobe(time, bwidth, 
+                   how_many, 
+                   background, 
+                   x_bg, y_bg):
+    
+    sanity = (time.max() - time.min()) / bwidth
+    if int(sanity) < 1:
         print('\nEvents list contain little data OR check bwidth parameter.\n')
-    return int(nbin) 
+        
+    if how_many == 0:
+        print('\nThe "how_many" parameter is set at 0.\n')
+        sanity = 0 
+    
+    if background not in [None, 'auto', 'manual']:
+        print('\nInvalid input for "background" parameter.\n')
+        sanity = 0 
+        
+    if background == 'manual':
+        if None in [x_bg, y_bg]:
+            print('\nPlease provide values for both "x_bg" and "y_bg".\n')
+            sanity = 0             
+    return int(sanity) 
 
 def modify_string(events_list):
     if events_list[-5:] == '.fits':
@@ -307,14 +325,14 @@ def apply_saturation_correction(CPF5, CPF5_err, saturation_correction):
         print('\nCheck the "saturation_correction" parameter')
         return
     return CPF5, CPF5_err
-
+    
 def makecurves(events_list = events_list,
                radius = radius,
                how_many = how_many,
                depth = depth,
                bwidth = bwidth,
                framecount_per_sec = framecount_per_sec,
-               background_auto = background_auto,
+               background = background,
                sky_radius = sky_radius,
                x_bg = x_bg,
                y_bg = y_bg,
@@ -327,12 +345,11 @@ def makecurves(events_list = events_list,
     time, fx, fy, photons = read_columns(events_list)
     weights = photons / framecount_per_sec
 
-    if how_many == 0:
-        print('\nThe "how_many" parameter is set at 0.\n')
-        return
-
-    nbin_check = tobe_or_notobe(time, bwidth)
-    if nbin_check < 1:
+    sanity = tobe_or_notobe(time, bwidth, 
+                            how_many, 
+                            background, 
+                            x_bg, y_bg)
+    if sanity < 1:
         return
 
     original_input = events_list
@@ -352,12 +369,12 @@ def makecurves(events_list = events_list,
 
     # To automatically choose background region.
     plt.figure(figsize = (10.5, 10))
-    if background_auto == 'yes':
+    if background == 'auto':
         lowres_Image, r_count, x_bg, y_bg = auto_bg(fx, fy, photons, framecount_per_sec)
         plt.gcf().gca().add_artist(lowres_Image)
        
     # To create a quick look figure marking sources and background.
-    if whole_figure_resolution != 256 or background_auto == 'no':  # To avoid doing this twice.
+    if whole_figure_resolution != 256 or background != 'auto':  # To avoid doing this twice.
         plt.hist2d(fx, fy, bins = whole_figure_resolution,
                    weights = weights, 
                    norm = LogNorm())
@@ -369,30 +386,35 @@ def makecurves(events_list = events_list,
         obj_circle = plt.Circle(u, 100, color = 'k', fill = False)
         plt.gcf().gca().add_artist(obj_circle)
 
-    plt.annotate('Background', (x_bg, y_bg),
-                 size = 13, color = 'black', fontweight = 'bold')
+    if background != None:
+        plt.annotate('Background', (x_bg, y_bg),
+                     size = 13, color = 'black', fontweight = 'bold')
 
-    bg_circle = plt.Circle((x_bg, y_bg), 100, color = 'k', fill = False)
-    plt.gcf().gca().add_artist(bg_circle)
+        bg_circle = plt.Circle((x_bg, y_bg), 100, color = 'k', fill = False)
+        plt.gcf().gca().add_artist(bg_circle)
+        
     png_name = os.path.join(path_to_events_list, 'sources_' + events_list + '.png')
     plt.savefig( png_name, format = 'png', bbox_inches = 'tight')
     plt.clf()
 
     print('Detected sources are plotted in the image:\n* {}'.format(png_name))   
-        
-    bg_png = create_sub_image(x_bg, y_bg, 
-                              sub_fig_size, 
-                              sky_radius, 
-                              'background_',
-                              fx, fy,
-                              path_to_events_list,
-                              events_list)
+ 
+    if background != None:
+        bg_png = create_sub_image(x_bg, y_bg, 
+                                  sub_fig_size, 
+                                  sky_radius, 
+                                  'background_',
+                                  fx, fy,
+                                  path_to_events_list,
+                                  events_list)
 
-    # To estimate Background CPS.
-    bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, photons, 
-                                   framecount_per_sec, x_bg, y_bg, sky_radius)
-    print('\nThe estimated background CPS = {:.5f} +/-{:.5f}'.format(bg_CPS, bg_CPS_e))
-    print('Region selected for background estimate:\n* {}'.format(bg_png))
+        # To estimate Background CPS.
+        bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, photons, 
+                                       framecount_per_sec, x_bg, y_bg, sky_radius)
+        print('\nThe estimated background CPS = {:.5f} +/-{:.5f}'.format(bg_CPS, bg_CPS_e))
+        print('Region selected for background estimate:\n* {}'.format(bg_png))
+    else:
+        bg_CPS, bg_CPS_e = 0, 0 
 
     # Calculating number of bins.
     time_width = time.max() - time.min() 
@@ -481,14 +503,14 @@ def makecurves(events_list = events_list,
 
     print('\nDone!\n')
     plt.close('all')
-
+    
 def curve(events_list = events_list,
           xp = xp,
           yp = yp,
           radius = radius,
           bwidth = bwidth,
           framecount_per_sec = framecount_per_sec,
-          background_auto = background_auto,
+          background = background,
           sky_radius = sky_radius,
           x_bg = x_bg,
           y_bg = y_bg,
@@ -501,8 +523,15 @@ def curve(events_list = events_list,
     time, fx, fy, photons = read_columns(events_list)
     weights = photons / framecount_per_sec
 
-    nbin_check = tobe_or_notobe(time, bwidth)
-    if nbin_check < 1:
+    if None in [xp, yp]:
+        print('\nPlease provide values for both "xp" and "yp".\n')
+        return 
+    
+    sanity = tobe_or_notobe(time, bwidth, 
+                            how_many, 
+                            background, 
+                            x_bg, y_bg)
+    if sanity < 1:
         return
 
     path_to_events_list, events_list = ntpath.split(events_list)
@@ -510,12 +539,12 @@ def curve(events_list = events_list,
 
     # To automatically choose background region.
     plt.figure(figsize = (10.5, 10))
-    if background_auto == 'yes':
+    if background == 'auto':
         lowres_Image, r_count, x_bg, y_bg = auto_bg(fx, fy, photons, framecount_per_sec)
         plt.gcf().gca().add_artist(lowres_Image)
         
     # To create a quick look figure marking source and background.
-    if whole_figure_resolution != 256 or background_auto == 'no':  # To avoid doing this twice.
+    if whole_figure_resolution != 256 or background != 'auto':  # To avoid doing this twice.
         plt.hist2d(fx, fy, bins = whole_figure_resolution, 
                    weights = weights,
                    norm = LogNorm())
@@ -526,11 +555,13 @@ def curve(events_list = events_list,
     obj_circle = plt.Circle((xp, yp), 100, color = 'k', fill = False)
     plt.gcf().gca().add_artist(obj_circle)
 
-    plt.annotate("Background", (x_bg, y_bg),
-                 size = 13, color = 'black', fontweight = 'bold')
+    if background != None:
+        plt.annotate('Background', (x_bg, y_bg),
+                     size = 13, color = 'black', fontweight = 'bold')
 
-    bg_circle = plt.Circle((x_bg, y_bg), 100, color = 'k', fill = False)
-    plt.gcf().gca().add_artist(bg_circle)
+        bg_circle = plt.Circle((x_bg, y_bg), 100, color = 'k', fill = False)
+        plt.gcf().gca().add_artist(bg_circle)
+        
     png_name = os.path.join(path_to_events_list, 'source_' + events_list + '.png')
     plt.savefig(png_name, format = 'png', bbox_inches = 'tight')
     plt.clf()     
@@ -543,20 +574,23 @@ def curve(events_list = events_list,
                                   path_to_events_list,
                                   events_list)
 
-    bg_png = create_sub_image(x_bg, y_bg, 
-                              sub_fig_size, 
-                              sky_radius, 
-                              'background_',
-                              fx, fy,
-                              path_to_events_list,
-                              events_list)
+    if background != None:
+        bg_png = create_sub_image(x_bg, y_bg, 
+                                  sub_fig_size, 
+                                  sky_radius, 
+                                  'background_',
+                                  fx, fy,
+                                  path_to_events_list,
+                                  events_list)
 
-    # To estimate Background CPS.
-    bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, photons, 
-                                   framecount_per_sec, x_bg, y_bg, sky_radius)
-    print('\nThe estimated background CPS = {:.5f} +/-{:.5f}'.format(bg_CPS, bg_CPS_e))
-    print('Region selected for background estimate:\n* {}'.format(bg_png))
-
+        # To estimate Background CPS.
+        bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, photons, 
+                                       framecount_per_sec, x_bg, y_bg, sky_radius)
+        print('\nThe estimated background CPS = {:.5f} +/-{:.5f}'.format(bg_CPS, bg_CPS_e))
+        print('Region selected for background estimate:\n* {}'.format(bg_png))
+    else:
+        bg_CPS, bg_CPS_e = 0, 0 
+        
     # selecting events within a circular region.
     T_W = np.array([(t, w) for xx, yy, t, w 
                             in zip(fx, fy, time, weights)
@@ -648,4 +682,4 @@ def curve(events_list = events_list,
 
     print("\nDone!\n")
     plt.close('all') 
-
+    
