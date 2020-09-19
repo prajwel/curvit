@@ -90,7 +90,7 @@ The `makecurves` function of curvit can automatically detect sources from events
 
 ``` python
 >>> import curvit
->>> curvit.makecurves(events_list = 'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits', how_many = 4)
+>>> curvit.makecurves(events_list = 'AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.fits.gz', how_many = 4)
 ```
 ```
 Detected source coordinates saved in file:
@@ -114,7 +114,7 @@ Done!
 If you already have the source coordinates, the `curve` function of curvit can be used to create light curves.
 
 ``` python
->>> curvit.curve(events_list = 'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits', xp = 2559, yp = 806)
+>>> curvit.curve(events_list = 'AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.fits.gz', xp = 3137, yp = 3652)
 ```
 ```  
 -------------------------- curve --------------------------
