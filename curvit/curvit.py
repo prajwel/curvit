@@ -72,7 +72,7 @@ The default value is 'None' and no background estimate is carried out.
 If you prefer to manually specify a background region, then give 'manual' 
 as the value. Also, you can provide 'auto' and background region 
 will be automatically selected.'''
-background = None  # valid inputs are None/manual/auto.
+background = None  # valid inputs are None / 'manual' / 'auto'.
 
 # If 'no', PLEASE FILL the following.
 x_bg = None # background X-coordinate.
@@ -82,8 +82,8 @@ y_bg = None # background Y-coordinate.
 '''The following parameters determines whether corrections are 
 applied to the CPF. They are aperture-correction and
 saturation-correction.'''
-aperture_correction = None # valid inputs are None/fuv/nuv.
-saturation_correction = 'no' # 'yes' or 'no'.
+aperture_correction = None # valid inputs are None / 'fuv' / 'nuv'.
+saturation_correction = False # True or False.
 
 
 # Following parameters need not be changed (unless you want to).
@@ -132,7 +132,9 @@ def read_columns(events_list):
 def tobe_or_notobe(time, bwidth, 
                    how_many, 
                    background, 
-                   x_bg, y_bg):
+                   x_bg, y_bg,
+                   aperture_correction, radius,
+                   saturation_correction):
     
     sanity = (time.max() - time.min()) / bwidth
     if int(sanity) < 1:
@@ -149,7 +151,22 @@ def tobe_or_notobe(time, bwidth,
     if background == 'manual':
         if None in [x_bg, y_bg]:
             print('\nPlease provide values for both "x_bg" and "y_bg".\n')
-            sanity = 0             
+            sanity = 0
+
+    if aperture_correction not in [None, 'fuv', 'nuv']:
+        print('\nInvalid input for "aperture_correction" parameter.\n')
+        sanity = 0 
+        
+    if saturation_correction not in [True, False]:
+        print('\nInvalid input for "saturation_correction" parameter.\n')
+        sanity = 0
+    
+    if aperture_correction != None:
+        if 1.5 <= radius <= 95:
+            pass
+        else:
+            print('\nThe "radius" parameter should be in the range {1.5, 95}')
+            sanity = 0 
     return int(sanity) 
 
 def modify_string(events_list):
@@ -205,7 +222,6 @@ def bg_estimate(fx, fy, time, photons, framecount_per_sec, x_bg, y_bg, sky_radiu
     Number_of_frames = float(len(unique_time))
     bg_CPS = (scaled_events * framecount_per_sec) / Number_of_frames
     bg_CPS_e = (scaled_events_e * framecount_per_sec) / Number_of_frames
-
     return bg_CPS, bg_CPS_e
 
 # To create subset images. 
@@ -259,7 +275,6 @@ def detect_sources(fx, fy, how_many, depth):
         mask = np.isin(uA, [0, 4800], invert = True)
         mask = mask[:, 0] * mask[:, 1]
         uA = uA[mask]
-        
     return uA
 
 def get_counts(fx, fy, time, photons, framecount_per_sec, xp, yp, radius):
@@ -284,32 +299,21 @@ def met_to_mjd(met):
     mjd = (met / 86400.0) + jan2010  # 1 julian day = 86400 seconds.
     return mjd
 
-def apply_aperture_correction(CPF, CPF_err, radius, aperture_correction):
-    if 1.5 <= radius <= 95:
-        pass
-    else:
-        print('\nThe "radius" parameter should be in the range {1.5, 95}')
-        return 
+def apply_aperture_correction(CPF, CPF_err, radius, aperture_correction): 
     if aperture_correction == 'fuv':
         CPF = CPF / fuv_ratio_function(radius)
         CPF_err = CPF_err / fuv_ratio_function(radius)
     elif aperture_correction == 'nuv':
         CPF = CPF / nuv_ratio_function(radius)
         CPF_err = CPF_err / nuv_ratio_function(radius)
-    elif aperture_correction == None:
-        pass
-    else:
-        print('\nCheck the "aperture_correction" parameter')
-        return    
     return CPF, CPF_err
     
 def apply_saturation_correction(CPF5, CPF5_err, saturation_correction):
     if np.sum(CPF5 >= 0.6) != 0:
         print("\nCounts per frame exeeds 0.6; saturation correction cannot be applied")
         return
-    if saturation_correction == 'no':
-        pass
-    elif saturation_correction == 'yes':        
+    
+    if saturation_correction == True:        
         ICPF5 = -1 * np.log(1 - CPF5)
         ICPF5_err = CPF5_err / CPF5
         
@@ -321,10 +325,7 @@ def apply_saturation_correction(CPF5, CPF5_err, saturation_correction):
         
         CPF5 = CPF5 + RCORR
         CPF5_err = np.sqrt((CPF5_err ** 2) + (RCORR_err ** 2))       
-    else:
-        print('\nCheck the "saturation_correction" parameter')
-        return
-    return CPF5, CPF5_err
+    return CPF5, CPF5_err    
     
 def makecurves(events_list = events_list,
                radius = radius,
@@ -348,7 +349,9 @@ def makecurves(events_list = events_list,
     sanity = tobe_or_notobe(time, bwidth, 
                             how_many, 
                             background, 
-                            x_bg, y_bg)
+                            x_bg, y_bg, 
+                            aperture_correction, radius,
+                            saturation_correction)
     if sanity < 1:
         return
 
@@ -503,7 +506,7 @@ def makecurves(events_list = events_list,
 
     print('\nDone!\n')
     plt.close('all')
-    
+        
 def curve(events_list = events_list,
           xp = xp,
           yp = yp,
@@ -530,7 +533,9 @@ def curve(events_list = events_list,
     sanity = tobe_or_notobe(time, bwidth, 
                             how_many, 
                             background, 
-                            x_bg, y_bg)
+                            x_bg, y_bg, 
+                            aperture_correction, radius,
+                            saturation_correction)
     if sanity < 1:
         return
 
