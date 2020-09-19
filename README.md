@@ -94,22 +94,19 @@ The `makecurves` function of curvit can automatically detect sources from events
 ```
 ```
 Detected source coordinates saved in file:
-* sources_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.coo
+* sources_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.coo
 Detected sources are plotted in the image:
-* sources_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
-
-The estimated background CPS = 0.00277 +/-0.00062
-Region selected for background estimate:
-* background_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+* sources_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
 
 ---------------------- light curves ----------------------
-* makecurves_2559_806_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
-* makecurves_3791_1555_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
-* makecurves_3317_1785_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+* makecurves_3137_3652_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
+* makecurves_2660_4383_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
+* makecurves_2530_1443_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
+* makecurves_2560_2426_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
 
 Done!
-
 ```
+
 > **IMPORTANT**: Zero-based indexing scheme is used in curvit. Therefore, if you open corresponding FITS image file in instrument coordinates (`...I_l2img.fits`) in DS9, there will be a difference of 1 between the source coordinates in DS9 and curvit. For example, the curvit coordinates of (2559, 806) will become (2560, 807) in FITS convention. 
 
 ### `curve`
@@ -120,15 +117,11 @@ If you already have the source coordinates, the `curve` function of curvit can b
 >>> curvit.curve(events_list = 'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits', xp = 2559, yp = 806)
 ```
 ```  
-The estimated background CPS = 0.00388 +/-0.00073
-Region selected for background estimate:
-* background_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
-
 -------------------------- curve --------------------------
-source: source_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
-        source_zoomed_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
-data: curve_2559_806_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.dat
-plot: curve_2559_806_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+source: source_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
+        source_zoomed_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
+data: curve_3137_3652_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.dat
+plot: curve_3137_3652_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
 
 Done!
 ```
@@ -161,11 +154,11 @@ The curvit package has a set of parameters for which the users can set values. s
 
 > Note: It is important to set the correct value of framerate. But most of the UVIT observations are carried out in 512 x 512 window mode. 
 
-* **background_auto** - Takes either `yes` or `no`. This parameter decides whether the background is automatically calculated or not. The default value is `yes`. If you prefer to specify a region for background estimation, then give `no` as the input and specify **x_bg** (background X-coordinate) and **y_bg** (background Y-coordinate) parameters. 
+* **background_auto** - Valid inputs are `None`, `'auto'`, or `'manual'`. The parameter affects how the background estimation is done. The default value is `None` and no background estimation is carried out. `'auto'` will automatically select a background region and background will be estimated. If you prefer to manually specify a background region, then give `'manual'` as the value and specify **x_bg** (background X-coordinate) and **y_bg** (background Y-coordinate) parameters. 
 
-* **aperture_correction** - Valid inputs are `None`, `fuv`, and `nuv`. The default value is `None`. The parameter value can be changed to either `fuv` or `nuv` to apply aperture corrections to the light curve data. 
+* **aperture_correction** - Valid inputs are `None`, `'fuv'`, or `'nuv'`. The default value is `None`. The parameter value can be changed to either `'fuv'` or `'nuv'` to apply aperture corrections to the light curve data. 
 
-* **saturation_correction** - Takes either `yes` or `no`. The default value is `no`. If the parameter is set to `yes`, saturation correction is applied to the light curve data. 
+* **saturation_correction** - Takes either `True` or `False`. The default value is `False`. If the parameter is set to `True`, saturation correction is applied to the light curve data. 
 
 
 ### Parameters only required for `makecurves`

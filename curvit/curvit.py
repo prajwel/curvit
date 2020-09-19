@@ -68,13 +68,13 @@ xp = None
 yp = None
 
 '''The following parameter affects how the background estimation is done.
-The default value is 'None' and no background estimate is carried out.
+The default value is 'None' and no background estimation is carried out.
 If you prefer to manually specify a background region, then give 'manual' 
 as the value. Also, you can provide 'auto' and background region 
 will be automatically selected.'''
 background = None  # valid inputs are None / 'manual' / 'auto'.
 
-# If 'no', PLEASE FILL the following.
+# If 'manual', PLEASE FILL the following.
 x_bg = None # background X-coordinate.
 y_bg = None # background Y-coordinate.
 
