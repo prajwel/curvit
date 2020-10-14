@@ -309,11 +309,13 @@ def apply_aperture_correction(CPF, CPF_err, radius, aperture_correction):
     return CPF, CPF_err
     
 def apply_saturation_correction(CPF5, CPF5_err, saturation_correction):
-    if np.sum(CPF5 >= 0.6) != 0:
-        print("\nCounts per frame exeeds 0.6; saturation correction cannot be applied")
-        return
     
-    if saturation_correction == True:        
+    if saturation_correction == True:
+        
+        if np.sum(CPF5 >= 0.6) != 0:
+            print("\nCounts per frame exeeds 0.6; saturation correction cannot be applied")
+            return
+        
         ICPF5 = -1 * np.log(1 - CPF5)
         ICPF5_err = CPF5_err / CPF5
         
@@ -325,7 +327,7 @@ def apply_saturation_correction(CPF5, CPF5_err, saturation_correction):
         
         CPF5 = CPF5 + RCORR
         CPF5_err = np.sqrt((CPF5_err ** 2) + (RCORR_err ** 2))       
-    return CPF5, CPF5_err    
+    return CPF5, CPF5_err  
     
 def makecurves(events_list = events_list,
                radius = radius,
