@@ -690,3 +690,34 @@ def curve(events_list = events_list,
     print("\nDone!\n")
     plt.close('all') 
     
+# Function to convert CCDLAB XYFrac and XYInts to X, Y positions in 4k.
+def CCDLAB_to_4k(Int, Frac):
+    coo_in_4k = ((Int + Frac) - 16) / 4.0
+    return coo_in_4k
+    
+# Function to convert CCDLAB files to a compatible events list.     
+def process_ccdlab(output = None,
+                   time_list = None, 
+                   XY_integers = None, 
+                   XY_fractions = None, 
+                   flat_list = None, 
+                   framecount_per_sec = framecount_per_sec):
+    
+    time = fits.open(time_list)[0].data / 1000
+    XYFrac = fits.open(XY_fractions)[0].data
+    XYInts = fits.open(XY_integers)[0].data
+    weight = fits.open(flat_list)[0].data 
+    photons = weight * framecount_per_sec
+    fx = CCDLAB_to_4k(XYInts[:,0], XYFrac[:,0])
+    fy = CCDLAB_to_4k(XYInts[:,1], XYFrac[:,1])
+    
+    col1 = fits.Column(name = 'MJD_L2', format = 'D', array = time)
+    col2 = fits.Column(name = 'Fx', format = 'D', array = fx)
+    col3 = fits.Column(name = 'Fy', format = 'D', array = fy)
+    col4 = fits.Column(name = 'EFFECTIVE_NUM_PHOTONS', format = 'D', array = photons)
+
+    cols = fits.ColDefs([col1, col2, col3, col4])
+    tbhdu = fits.BinTableHDU.from_columns(cols)
+    tbhdu.writeto(output, overwrite = True)   
+    return   
+    
