@@ -179,7 +179,7 @@ def modify_string(events_list):
 # To automatically choose background region.
 def auto_bg(fx, fy, photons, framecount_per_sec): 
     weights = photons / framecount_per_sec    
-
+    
     lowres_counts, lowres_xedges, \
     lowres_yedges, lowres_Image = plt.hist2d(fx, fy, 
                                              bins = 256,
@@ -193,11 +193,11 @@ def auto_bg(fx, fy, photons, framecount_per_sec):
     x_mesh = x_mesh.flatten() 
     y_mesh = y_mesh.flatten()
     # To avoid the edges. 
-    polished_array = [(lr_count, xm_p, ym_p) for lr_count, xm_p, ym_p
-                      in zip(flat_counts, x_mesh, y_mesh)
-                      if ((xm_p - 2400) ** 2 + (ym_p - 2400) ** 2) <= 1800 ** 2]
+    mask = (x_mesh - 2400) ** 2 + (y_mesh - 2400) ** 2 < 1800 ** 2
+    array = np.array([flat_counts, x_mesh, y_mesh]).T 
+    polished_array = array[mask]
+    sorted_counts = np.sort(polished_array, axis= 0)   
 
-    sorted_counts = sorted(polished_array)
     five_percent = int(0.05 * len(sorted_counts))
     r_count, x_bg, y_bg = random.choice(sorted_counts[:five_percent])
     return lowres_Image, r_count, x_bg, y_bg   
