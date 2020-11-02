@@ -412,7 +412,7 @@ def makecurves(events_list = events_list,
         return
     
     coo_file = os.path.join(path_to_events_list, 'sources_' + events_list +'.coo')
-    np.savetxt(coo_file, uA, fmt = '%4.f\t%4.f')
+    np.savetxt(coo_file, uA, fmt = '%4.2f\t%4.2f')
     print('\nDetected source coordinates saved in file:\n* {}'.format(coo_file))
 
     # To automatically choose background region.
