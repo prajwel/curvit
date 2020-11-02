@@ -36,6 +36,9 @@ from collections import Counter
 from scipy.spatial import KDTree
 from scipy.interpolate import interp1d
 from matplotlib.colors import LogNorm
+from photutils import DAOStarFinder, CircularAperture
+from astropy.stats import sigma_clipped_stats, gaussian_fwhm_to_sigma
+from astropy.convolution import Gaussian2DKernel, convolve
 
  
 #######################################################################
@@ -60,8 +63,9 @@ bwidth = 50 # bin width in seconds, change as you please.
 framecount_per_sec = 28.7185  # 28.7185 frames / second for 512x512 mode.
 
 # The following is only required for makecurves. 
-how_many = 4 # number of objects to be auto-detected.
-depth = 1 #To bin pixels to improve signal.
+detection_method = 'daofind' # valid inputs are 'daofind' / 'kdtree'.
+threshold = 4 # threshold ('daofind').
+how_many = 4 # number of objects to be auto-detected ('kdtree').
 
 # The coordinates are only required for curves.
 xp = None
@@ -130,6 +134,8 @@ def read_columns(events_list):
     return time, fx, fy, photons
 
 def tobe_or_notobe(time, bwidth, 
+                   detection_method,
+                   threshold,
                    how_many, 
                    background, 
                    x_bg, y_bg,
@@ -139,6 +145,14 @@ def tobe_or_notobe(time, bwidth,
     sanity = (time.max() - time.min()) / bwidth
     if int(sanity) < 1:
         print('\nEvents list contain little data OR check bwidth parameter.\n')
+
+    if detection_method not in ['daofind', 'kdtree']:
+        print('\nInvalid input for "detection_method" parameter.\n')
+        sanity = 0 
+        
+    if threshold == 0:
+        print('\nThe "threshold" parameter is set at 0.\n')
+        sanity = 0 
         
     if how_many == 0:
         print('\nThe "how_many" parameter is set at 0.\n')
@@ -250,25 +264,47 @@ def create_sub_image(pos_x, pos_y,
     plt.clf()
     return source_png_name  
 
+# To find positions of interest (using daofind algorithm).
+def detect_sources_daofind(fx, fy, photons, threshold):
+    mask_radius = 1700
+    kernel = Gaussian2DKernel(x_stddev = 4 * gaussian_fwhm_to_sigma)
+
+    aperture = CircularAperture((2400, 2400), r = mask_radius)
+    mask = aperture.to_mask(method = 'center')
+    mask = mask.to_image(shape = ((4800, 4800)))
+
+    weights = photons / framecount_per_sec
+    bins = np.arange(0, 4801)
+    ndarray, yedges, xedges = np.histogram2d(fy, fx, bins = (bins, bins), weights = weights)  
+    data = ndarray * mask
+
+    mean, median, std = sigma_clipped_stats(data, sigma = 5., maxiters = 1)
+    data = convolve(data, kernel)
+    daofind = DAOStarFinder(fwhm = 3.0, threshold = threshold * std, exclude_border = True)
+    sources = daofind(data - mean)    
+    sources.sort('mag')
+
+    uA = np.array([sources['xcentroid'].data, sources['ycentroid'].data]).T
+    uA = np.round(uA, 2)
+    return uA
+
 # To find positions of interest (positions with maximum events).
-def detect_sources(fx, fy, how_many, depth):
-    fx = fx / depth
-    fy = fy / depth
+def detect_sources_kdtree(fx, fy, how_many):
     fxi = [int(round(s)) for s in fx]
     fyi = [int(round(s)) for s in fy]
     # Counting stuff to know who all are popular. 
     counter = Counter(zip(fxi, fyi))
-    most_common_limit = int(100 * how_many / (depth ** 2))
+    most_common_limit = int(100 * how_many)
     A = np.array(list(zip(*counter.most_common(most_common_limit)))[0])
     # Sieving out the duplicates. 
     uA = []
     while len(A) != 0:
         uA.append(A[0]) 
         A = np.array([x for x in A 
-                      if x not in A[KDTree(A).query_ball_point(uA[-1], 16 / depth)]])
+                      if x not in A[KDTree(A).query_ball_point(uA[-1], 16)]])
 
     uA = np.array(uA)[:how_many]
-    uA = uA * depth
+    uA = uA
 
     if len(uA) != 0:
         # To avoid sources which have coordinates 0 or 4800.
@@ -331,14 +367,15 @@ def apply_saturation_correction(CPF5, CPF5_err, saturation_correction):
     
 def makecurves(events_list = events_list,
                radius = radius,
+               threshold = threshold,
                how_many = how_many,
-               depth = depth,
                bwidth = bwidth,
                framecount_per_sec = framecount_per_sec,
                background = background,
                sky_radius = sky_radius,
                x_bg = x_bg,
                y_bg = y_bg,
+               detection_method = detection_method,
                aperture_correction = aperture_correction,
                saturation_correction = saturation_correction,
                whole_figure_resolution = whole_figure_resolution,
@@ -349,11 +386,14 @@ def makecurves(events_list = events_list,
     weights = photons / framecount_per_sec
 
     sanity = tobe_or_notobe(time, bwidth, 
+                            detection_method,
+                            threshold,
                             how_many, 
                             background, 
-                            x_bg, y_bg, 
+                            x_bg, y_bg,
                             aperture_correction, radius,
                             saturation_correction)
+                           
     if sanity < 1:
         return
 
@@ -361,8 +401,11 @@ def makecurves(events_list = events_list,
     path_to_events_list, events_list = ntpath.split(events_list)
     events_list = modify_string(events_list)
 
-    depth = 1
-    uA = detect_sources(fx, fy, how_many, depth)
+    if detection_method == 'daofind':
+        uA = detect_sources_daofind(fx, fy, photons, threshold)
+    else:
+        uA = detect_sources_kdtree(fx, fy, how_many)
+
 
     if len(uA) == 0:
         print('No sources, try increasing the "how_many" parameter.')
@@ -533,9 +576,11 @@ def curve(events_list = events_list,
         return 
     
     sanity = tobe_or_notobe(time, bwidth, 
+                            detection_method,
+                            threshold,
                             how_many, 
                             background, 
-                            x_bg, y_bg, 
+                            x_bg, y_bg,
                             aperture_correction, radius,
                             saturation_correction)
     if sanity < 1:
@@ -720,4 +765,12 @@ def process_ccdlab(output = None,
     tbhdu = fits.BinTableHDU.from_columns(cols)
     tbhdu.writeto(output, overwrite = True)   
     return   
-    
+
+def makefits(events_list):
+    time, fx, fy, photons = read_columns(events_list)
+    weights = photons / framecount_per_sec
+    bins = np.arange(0, 4801)
+    ndarray, yedges, xedges = np.histogram2d(fy, fx, bins = (bins, bins), weights = weights)  
+    fits_name = events_list.replace('.fits', '_quick_look.fits')
+    hdu = fits.PrimaryHDU(data = ndarray)
+    hdu.writeto(fits_name, overwrite = True)        
