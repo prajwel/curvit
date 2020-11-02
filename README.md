@@ -39,7 +39,7 @@ This dataset, `LEVL2AS1UVT20161005G06_084T01_9000000710.zip`, is a compressed fi
     ├── LEVL1AS1UVT20161005G06_084T01_9000000710_05546_V2.2_dqr.xml
     └── README.txt
 ```
-Please read the `README.txt` for details on Level2 data and what it contains. `RAS_VIS` directory contains images that were corrected for satellite drift by using the VIS (visible) channel. For the images inside `RAS_NUV` directory, NUV (near-ultraviolet) channel was used. For most cases, the data from `RAS_VIS` would be suitable. If you have downloaded a dataset that is different than the one mentioned above, check the statistics inside `DISCLAIMER.txt` to decide what to use. 
+Please read the `README.txt` for details on Level2 data and what it contains. `RAS_VIS` directory contains images that were corrected for satellite drift by using the VIS (visible) channel. For the images inside `RAS_NUV` directory, NUV (near-ultraviolet) channel was used. For most cases, the data from `RAS_VIS` would be suitable. If you download a dataset that is different than the one mentioned above, check the statistics inside `DISCLAIMER.txt` to decide what to use. 
 
 Our directory of interest,`RAS_VIS`, has the following contents. 
 ```
@@ -82,7 +82,7 @@ This structure of subdirectories shall repeat for all sets - `uvt_01`, `uvt_02`,
 
 For the examples given below, we will be using FUV events list (`...l2ce.fits`) from `uvt_03` as input to curvit.
 
-> **IMPORTANT**: The Level2 directory structure and FITS file naming conventions here explained are for the Level2 data of 6.3 version obtained from ISSDC. Always refer the `README.txt` included along with the Level2 data to understand the data structure.
+> **IMPORTANT**: The Level2 directory structure and FITS file naming conventions here explained are for the Level2 data of 6.3 version obtained from ISSDC. Always refer to the `README.txt` included along with the Level2 data to understand the data structure.
 
 ### `makecurves`
 
@@ -90,7 +90,7 @@ The `makecurves` function of curvit can automatically detect sources from events
 
 ``` python
 >>> import curvit
->>> curvit.makecurves(events_list = 'AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.fits.gz', how_many = 4)
+>>> curvit.makecurves(events_list = 'AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.fits.gz', threshold = 5)
 ```
 ```
 Detected source coordinates saved in file:
@@ -99,15 +99,16 @@ Detected sources are plotted in the image:
 * sources_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
 
 ---------------------- light curves ----------------------
-* makecurves_3137_3652_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
-* makecurves_2660_4383_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
-* makecurves_2530_1443_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
-* makecurves_2560_2426_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
+* makecurves_3136.64_3651.08_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
+* makecurves_2530.02_1442.18_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
+* makecurves_2912.31_3657.17_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
+...
+...
 
 Done!
 ```
 
-> **IMPORTANT**: Zero-based indexing scheme is used in curvit. Therefore, if you open corresponding FITS image file in instrument coordinates (`...I_l2img.fits`) in DS9, there will be a difference of 1 between the source coordinates in DS9 and curvit. For example, the curvit coordinates of (2559, 806) will become (2560, 807) in FITS convention. 
+> **IMPORTANT**: Zero-based indexing scheme is used in curvit. Therefore, if you open the corresponding FITS image file in instrument coordinates (`...I_l2img.fits`) in DS9, there will be a difference of 1 between the source coordinates in DS9 and curvit. For example, the curvit coordinates of (2559, 806) will become (2560, 807) in FITS convention. 
 
 ### `curve`
 
@@ -128,7 +129,7 @@ Done!
 ![FO Aqr FUV curve](https://i.imgur.com/kKYReoW.png)
 
 ## Parameters
-The curvit package has a set of parameters for which the users can set values. some of them have default values. 
+The curvit package has a set of parameters for which the users can set values. Some of them have default values. 
 
 ### Parameters common to both `makecurves` and `curve`
 
@@ -152,9 +153,9 @@ The curvit package has a set of parameters for which the users can set values. s
 | 150 x 150 | 300  |
 | 100 x 100 | 640  |
 
-> Note: It is important to set the correct value of framerate. But most of the UVIT observations are carried out in 512 x 512 window mode. 
+> Note: It is essential to set the correct value of framerate. But most of the UVIT observations are carried out in 512 x 512 window mode. 
 
-* **background_auto** - Valid inputs are `None`, `'auto'`, or `'manual'`. The parameter affects how the background estimation is done. The default value is `None` and no background estimation is carried out. `'auto'` will automatically select a background region and background will be estimated. If you prefer to manually specify a background region, then give `'manual'` as the value and specify **x_bg** (background X-coordinate) and **y_bg** (background Y-coordinate) parameters. 
+* **background_auto** - Valid inputs are `None`, `'auto'`, or `'manual'`. The parameter affects how the background estimation is done. The default value is `None`, and no background estimation is carried out. `'auto'` will automatically select a background region and background will be estimated. If you prefer to manually specify a background region, then give `'manual'` as the value and specify **x_bg** (background X-coordinate) and **y_bg** (background Y-coordinate) parameters. 
 
 * **aperture_correction** - Valid inputs are `None`, `'fuv'`, or `'nuv'`. The default value is `None`. The parameter value can be changed to either `'fuv'` or `'nuv'` to apply aperture corrections to the light curve data. 
 
@@ -163,7 +164,11 @@ The curvit package has a set of parameters for which the users can set values. s
 
 ### Parameters only required for `makecurves`
 
-* **how_many** - The upper threshold for the number of sources to be auto-detected. The default value is `4`.
+* **detection_method** - Two source detection methods are available: `daofind` and `kdtree`. The default method is `daofind`. 
+
+* **threshold** - The threshold parameter associated with the `daofind` method. The default value is `4`.
+
+* **how_many** - The limit for the number of sources to be detected using the `kdtree` method. The default value is `4`.
 
 ### Parameters only required for `curve`
 

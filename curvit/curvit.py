@@ -65,7 +65,7 @@ framecount_per_sec = 28.7185  # 28.7185 frames / second for 512x512 mode.
 # The following is only required for makecurves. 
 detection_method = 'daofind' # valid inputs are 'daofind' / 'kdtree'.
 threshold = 4 # threshold ('daofind').
-how_many = 4 # number of objects to be auto-detected ('kdtree').
+how_many = 4 # limit ('kdtree').
 
 # The coordinates are only required for curves.
 xp = None
