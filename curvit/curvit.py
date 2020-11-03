@@ -37,8 +37,8 @@ from scipy.spatial import KDTree
 from scipy.interpolate import interp1d
 from matplotlib.colors import LogNorm
 from photutils import DAOStarFinder, CircularAperture
-from astropy.stats import sigma_clipped_stats, gaussian_fwhm_to_sigma
 from astropy.convolution import Gaussian2DKernel, convolve
+from astropy.stats import sigma_clipped_stats, gaussian_fwhm_to_sigma, sigma_clip
 
  
 #######################################################################
@@ -193,10 +193,11 @@ def modify_string(events_list):
 # To automatically choose background region.
 def auto_bg(fx, fy, photons, framecount_per_sec): 
     weights = photons / framecount_per_sec    
-    
+
+    bins = np.arange(0, 4801, 16)    
     lowres_counts, lowres_xedges, \
     lowres_yedges, lowres_Image = plt.hist2d(fx, fy, 
-                                             bins = 256,
+                                             bins = (bins, bins),
                                              weights = weights,
                                              norm = LogNorm())
 
@@ -207,15 +208,14 @@ def auto_bg(fx, fy, photons, framecount_per_sec):
     x_mesh = x_mesh.flatten() 
     y_mesh = y_mesh.flatten()
     # To avoid the edges. 
-    mask = (x_mesh - 2400) ** 2 + (y_mesh - 2400) ** 2 < 1800 ** 2
+    mask = (x_mesh - 2400) ** 2 + (y_mesh - 2400) ** 2 <= 1800 ** 2
     array = np.array([flat_counts, x_mesh, y_mesh]).T 
     polished_array = array[mask]
-    sorted_counts = np.sort(polished_array, axis= 0)   
-
-    five_percent = int(0.05 * len(sorted_counts))
-    r_count, x_bg, y_bg = random.choice(sorted_counts[:five_percent])
+    bg_mask = sigma_clip(polished_array[:, 0], sigma = 3, maxiters=5)
+    bg_mask = np.logical_not(bg_mask.mask)
+    r_count, x_bg, y_bg = random.choice(polished_array[bg_mask])
     return lowres_Image, r_count, x_bg, y_bg   
-
+    
 # To estimate background CPS.
 def bg_estimate(fx, fy, time, photons, framecount_per_sec, x_bg, y_bg, sky_radius):
 
