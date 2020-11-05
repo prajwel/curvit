@@ -220,10 +220,9 @@ def auto_bg(fx, fy, photons, framecount_per_sec):
 def bg_estimate(fx, fy, time, photons, framecount_per_sec, x_bg, y_bg, sky_radius):
 
     weights = photons / framecount_per_sec    
-    T_W = [(t_b, w) for xx_b, yy_b, t_b, w in zip(fx, fy, time, weights)
-                     if ((xx_b - x_bg)**2 + (yy_b - y_bg)**2) <= sky_radius**2]
-
-    T, W = np.array(T_W).T
+    mask = ((fx - x_bg) ** 2 + (fy - y_bg) ** 2) <= sky_radius ** 2    
+    T = time[mask]
+    W = weights[mask]
 
     if len(T) != 0:
         scaled_events = (np.sum(W) * radius**2) / float(sky_radius**2)
@@ -247,13 +246,12 @@ def create_sub_image(pos_x, pos_y,
                      path_to_events_list,
                      events_list):
 
-    obj_xy = [(obj_x, obj_y) for obj_x, obj_y 
-              in zip(fx, fy) 
-              if pos_x - sub_size <= obj_x <= pos_x + sub_size
-                  and pos_y - sub_size <= obj_y <= pos_y + sub_size]
+    mask = np.logical_and(np.abs(fx - pos_x) <= sub_size,
+                          np.abs(fy - pos_y) <= sub_size)
 
-    obj_fx = np.array(obj_xy)[:,0]
-    obj_fy = np.array(obj_xy)[:,1]
+    obj_fx = fx[mask]
+    obj_fy = fy[mask]
+    
     obj_circle = plt.Circle((pos_x, pos_y), cir_rad, 
                             color = 'k', fill = False)
 
@@ -317,10 +315,9 @@ def get_counts(fx, fy, time, photons, framecount_per_sec, xp, yp, radius):
 
     weights = photons / framecount_per_sec    
     # selecting events within a circular region.
-    T_W = [(t, w) for xx, yy, t, w in zip(fx, fy, time, weights) 
-                   if ((xx - xp)**2 +(yy - yp)**2) <= radius**2]
-
-    T, W = np.array(T_W).T 
+    mask = ((fx - xp) ** 2 + (fy - yp) ** 2) <= radius ** 2    
+    T = time[mask]
+    W = weights[mask]
 
     # To find Counts per Frame (CPF).
     unique_time = np.unique(time)
@@ -486,12 +483,12 @@ def makecurves(events_list = events_list,
     plt.figure(figsize = (8, 5))
     for uaxy in uA:
         xp, yp = uaxy
-        T_W = np.array([(t, w) for xx, yy, t, w 
-                                in zip(fx, fy, time, weights)
-                                if ((xx - xp)**2 +(yy - yp)**2) <= radius**2])
-
-        T, W = np.array(T_W).T 
-        T = met_to_mjd(T)        
+        
+        # selecting events within a circular region.
+        mask = ((fx - xp) ** 2 + (fy - yp) ** 2) <= radius ** 2    
+        T = time[mask]
+        W = weights[mask]      
+        T = met_to_mjd(T)         
 
         plt.title("X = %s, Y = %s, bin = %ss, radius = %spx" \
                   %(xp, yp, bwidth, radius), fontsize = fontsize)
@@ -510,15 +507,16 @@ def makecurves(events_list = events_list,
         bin_centres = (bin_edges[:-1] + bin_edges[1:]) / 2.
 
         if np.array_equal(bin_edges, u_bin_edges) == True:
-            hisdata = [(mb, mc, mwc, uc) for mb, mwc, mc, uc 
-                       in zip(bin_centres, weighted_counts, counts, u_counts) 
-                       if mc != 0]
+            count_mask = counts != 0
         else:
             print('\nThis happens when bwidth is too small\n')
             return
 
-        if len(hisdata) != 0:
-            mcentres, weighted_mcounts, mcounts, frames_in_bin = np.array(hisdata).T
+        if np.sum(count_mask) != 0:
+            mcentres =  bin_centres[count_mask]
+            weighted_mcounts = weighted_counts[count_mask]
+            mcounts = counts[count_mask]
+            frames_in_bin = u_counts[count_mask]
         else:
             print('No counts for the source at %s' %uaxy)
             continue
@@ -652,11 +650,9 @@ def curve(events_list = events_list,
         bg_CPS, bg_CPS_e = 0, 0 
         
     # selecting events within a circular region.
-    T_W = np.array([(t, w) for xx, yy, t, w 
-                            in zip(fx, fy, time, weights)
-                            if ((xx - xp)**2 +(yy - yp)**2) <= radius**2])
-
-    T, W = np.array(T_W).T 
+    mask = ((fx - xp) ** 2 + (fy - yp) ** 2) <= radius ** 2    
+    T = time[mask]
+    W = weights[mask]  
 
     # Calculating number of bins.
     time_width = time.max() - time.min() 
@@ -692,15 +688,16 @@ def curve(events_list = events_list,
     bin_centres = (bin_edges[:-1] + bin_edges[1:]) / 2.
 
     if np.array_equal(bin_edges, u_bin_edges) == True:
-            hisdata = [(mb, mc, mwc, uc) for mb, mwc, mc, uc 
-                       in zip(bin_centres, weighted_counts, counts, u_counts) 
-                       if mc != 0]
+        count_mask = counts != 0
     else:
         print('\nThis happens when bwidth is too small\n')
         return
 
-    if len(hisdata) != 0:
-        mcentres, weighted_mcounts, mcounts, frames_in_bin = np.array(hisdata).T
+    if np.sum(count_mask) != 0:
+        mcentres =  bin_centres[count_mask]
+        weighted_mcounts = weighted_counts[count_mask]
+        mcounts = counts[count_mask]
+        frames_in_bin = u_counts[count_mask]
     else:
         print('No counts inside the aperture!')
 
