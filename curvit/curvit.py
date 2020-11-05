@@ -541,6 +541,14 @@ def makecurves(events_list = events_list,
         plt.errorbar(mcentres, CPS, yerr = CPS_err, linestyle = "None")
         empty_space = (till_here - time_start) / 25.0
         plt.xlim(time_start - empty_space, till_here + empty_space)
+        
+        #To write the array to output.
+        data_to_output = list(zip(mcentres, CPS, CPS_err))
+        output_prefix = 'makecurves_' + str(xp) + '_' + str(yp) + '_' + events_list
+        datname = os.path.join(path_to_events_list, output_prefix + '.dat')
+        np.savetxt(datname, data_to_output,
+                   fmt = '%10.11f\t%.5e\t%.5e',
+                   header = 'MJD\t\t\tCPS (bin=%ss)\tCPS_error' %bwidth)
 
         output_prefix = 'makecurves_' + str(xp) + '_' + str(yp) + '_' + events_list
         figname = os.path.join(path_to_events_list, output_prefix + '.png')
