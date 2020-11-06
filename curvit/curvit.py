@@ -191,16 +191,12 @@ def modify_string(events_list):
     return events_list
 
 # To automatically choose background region.
-def auto_bg(fx, fy, photons, framecount_per_sec): 
+def auto_bg(fx, fy, time, photons, framecount_per_sec, sky_radius): 
     weights = photons / framecount_per_sec    
-
     bins = np.arange(0, 4801, 16)    
-    lowres_counts, lowres_xedges, \
-    lowres_yedges, lowres_Image = plt.hist2d(fx, fy, 
-                                             bins = (bins, bins),
-                                             weights = weights,
-                                             norm = LogNorm())
-
+    lowres_counts, lowres_xedges, lowres_yedges = np.histogram2d(fx, fy, 
+                                                                 bins = (bins, bins), 
+                                                                 weights = weights)  
     lowres_xcentres = (lowres_xedges[:-1] + lowres_xedges[1:]) / 2.
     lowres_ycentres = (lowres_yedges[:-1] + lowres_yedges[1:]) / 2.
     flat_counts = lowres_counts.flatten()
@@ -214,8 +210,24 @@ def auto_bg(fx, fy, photons, framecount_per_sec):
     polished_array = array[mask]
     bg_mask = sigma_clip(polished_array[:, 0], sigma = 3, maxiters = 5)
     bg_mask = np.logical_not(bg_mask.mask)
-    r_count, x_bg, y_bg = random.choice(polished_array[bg_mask])
-    return lowres_Image, r_count, x_bg, y_bg   
+    
+    bg_CPS_sample = []
+    bg_CPS_e_sample = []
+    sample_size = 100
+    for d in range(sample_size):
+        r_count, x_bg, y_bg = random.choice(polished_array[bg_mask])
+        bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, photons, 
+                                       framecount_per_sec, x_bg, y_bg, sky_radius)
+        bg_CPS_sample.append(bg_CPS)
+        bg_CPS_e_sample.append(bg_CPS_e)
+        
+    bg_CPS_sample = np.array(bg_CPS_sample)
+    bg_CPS_e_sample = np.array(bg_CPS_e_sample)
+    bg_CPS_mask = sigma_clip(bg_CPS_sample, sigma = 3, maxiters = 5)
+    bg_CPS_mask = np.logical_not(bg_CPS_mask.mask)
+    bg_CPS = np.mean(bg_CPS_sample[bg_CPS_mask])
+    bg_CPS_e = np.mean(bg_CPS_e_sample[bg_CPS_mask])
+    return lowres_counts, bg_CPS, bg_CPS_e   
     
 # To estimate background CPS.
 def bg_estimate(fx, fy, time, photons, framecount_per_sec, x_bg, y_bg, sky_radius):
@@ -416,14 +428,17 @@ def makecurves(events_list = events_list,
     # To automatically choose background region.
     plt.figure(figsize = (10.5, 10))
     if background == 'auto':
-        lowres_Image, r_count, x_bg, y_bg = auto_bg(fx, fy, photons, framecount_per_sec)
-        plt.gcf().gca().add_artist(lowres_Image)
+        lowres_counts, bg_CPS, bg_CPS_e = auto_bg(fx, fy, time, photons, 
+                                                  framecount_per_sec, sky_radius)
        
     # To create a quick look figure marking sources and background.
-    if whole_figure_resolution != 256 or background != 'auto':  # To avoid doing this twice.
-        plt.hist2d(fx, fy, bins = whole_figure_resolution,
-                   weights = weights, 
-                   norm = LogNorm())
+    bins = np.arange(0, 4801, 4096 / whole_figure_resolution)    
+    plt.hist2d(fx, fy, 
+               bins = (bins, bins),
+               weights = weights,
+               norm = LogNorm())
+                   
+    plt.tick_params(axis = 'both', labelsize = fontsize)
 
     for u in uA:
         plt.annotate('Source', u, 
@@ -432,7 +447,7 @@ def makecurves(events_list = events_list,
         obj_circle = plt.Circle(u, 100, color = 'k', fill = False)
         plt.gcf().gca().add_artist(obj_circle)
 
-    if background != None:
+    if background == 'manual':
         plt.annotate('Background', (x_bg, y_bg),
                      size = 13, color = 'black', fontweight = 'bold')
 
@@ -446,19 +461,21 @@ def makecurves(events_list = events_list,
     print('Detected sources are plotted in the image:\n* {}'.format(png_name))   
  
     if background != None:
-        bg_png = create_sub_image(x_bg, y_bg, 
-                                  sub_fig_size, 
-                                  sky_radius, 
-                                  'background_',
-                                  fx, fy,
-                                  path_to_events_list,
-                                  events_list)
-
-        # To estimate Background CPS.
-        bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, photons, 
-                                       framecount_per_sec, x_bg, y_bg, sky_radius)
-        print('\nThe estimated background CPS = {:.5f} +/-{:.5f}'.format(bg_CPS, bg_CPS_e))
-        print('Region selected for background estimate:\n* {}'.format(bg_png))
+        if background == 'auto':
+            print('\nThe estimated background CPS = {:.5f} +/-{:.5f}'.format(bg_CPS, bg_CPS_e))
+        if background == 'manual':
+            # To estimate Background CPS.
+            bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, photons, 
+                                           framecount_per_sec, x_bg, y_bg, sky_radius)
+            bg_png = create_sub_image(x_bg, y_bg, 
+                                      sub_fig_size, 
+                                      sky_radius, 
+                                      'background_',
+                                      fx, fy,
+                                      path_to_events_list,
+                                      events_list)
+            print('\nThe estimated background CPS = {:.5f} +/-{:.5f}'.format(bg_CPS, bg_CPS_e))
+            print('Region selected for background estimate:\n* {}'.format(bg_png))
     else:
         bg_CPS, bg_CPS_e = 0, 0 
 
@@ -599,14 +616,17 @@ def curve(events_list = events_list,
     # To automatically choose background region.
     plt.figure(figsize = (10.5, 10))
     if background == 'auto':
-        lowres_Image, r_count, x_bg, y_bg = auto_bg(fx, fy, photons, framecount_per_sec)
-        plt.gcf().gca().add_artist(lowres_Image)
+        lowres_counts, bg_CPS, bg_CPS_e = auto_bg(fx, fy, time, photons, 
+                                                  framecount_per_sec, sky_radius)
         
-    # To create a quick look figure marking source and background.
-    if whole_figure_resolution != 256 or background != 'auto':  # To avoid doing this twice.
-        plt.hist2d(fx, fy, bins = whole_figure_resolution, 
-                   weights = weights,
-                   norm = LogNorm())
+    # To create a quick look figure marking sources and background.
+    bins = np.arange(0, 4801, 4096 / whole_figure_resolution)    
+    plt.hist2d(fx, fy, 
+               bins = (bins, bins),
+               weights = weights,
+               norm = LogNorm())
+
+    plt.tick_params(axis = 'both', labelsize = fontsize)
 
     plt.annotate("Source", (xp, yp), 
                  size = 13, color = 'black', fontweight = 'bold')
@@ -614,7 +634,7 @@ def curve(events_list = events_list,
     obj_circle = plt.Circle((xp, yp), 100, color = 'k', fill = False)
     plt.gcf().gca().add_artist(obj_circle)
 
-    if background != None:
+    if background == 'manual':
         plt.annotate('Background', (x_bg, y_bg),
                      size = 13, color = 'black', fontweight = 'bold')
 
@@ -632,21 +652,23 @@ def curve(events_list = events_list,
                                   fx, fy,
                                   path_to_events_list,
                                   events_list)
-
+    
     if background != None:
-        bg_png = create_sub_image(x_bg, y_bg, 
-                                  sub_fig_size, 
-                                  sky_radius, 
-                                  'background_',
-                                  fx, fy,
-                                  path_to_events_list,
-                                  events_list)
-
-        # To estimate Background CPS.
-        bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, photons, 
-                                       framecount_per_sec, x_bg, y_bg, sky_radius)
-        print('\nThe estimated background CPS = {:.5f} +/-{:.5f}'.format(bg_CPS, bg_CPS_e))
-        print('Region selected for background estimate:\n* {}'.format(bg_png))
+        if background == 'auto':
+            print('\nThe estimated background CPS = {:.5f} +/-{:.5f}'.format(bg_CPS, bg_CPS_e))
+        if background == 'manual':
+            # To estimate Background CPS.
+            bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, photons, 
+                                           framecount_per_sec, x_bg, y_bg, sky_radius)
+            bg_png = create_sub_image(x_bg, y_bg, 
+                                      sub_fig_size, 
+                                      sky_radius, 
+                                      'background_',
+                                      fx, fy,
+                                      path_to_events_list,
+                                      events_list)
+            print('\nThe estimated background CPS = {:.5f} +/-{:.5f}'.format(bg_CPS, bg_CPS_e))
+            print('Region selected for background estimate:\n* {}'.format(bg_png))
     else:
         bg_CPS, bg_CPS_e = 0, 0 
         
