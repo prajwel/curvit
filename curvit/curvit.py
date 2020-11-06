@@ -208,10 +208,11 @@ def auto_bg(fx, fy, photons, framecount_per_sec):
     x_mesh = x_mesh.flatten() 
     y_mesh = y_mesh.flatten()
     # To avoid the edges. 
-    mask = (x_mesh - 2400) ** 2 + (y_mesh - 2400) ** 2 <= 1800 ** 2
+    mask_radius = 1700
+    mask = (x_mesh - 2400) ** 2 + (y_mesh - 2400) ** 2 <= mask_radius ** 2
     array = np.array([flat_counts, x_mesh, y_mesh]).T 
     polished_array = array[mask]
-    bg_mask = sigma_clip(polished_array[:, 0], sigma = 3, maxiters=5)
+    bg_mask = sigma_clip(polished_array[:, 0], sigma = 3, maxiters = 5)
     bg_mask = np.logical_not(bg_mask.mask)
     r_count, x_bg, y_bg = random.choice(polished_array[bg_mask])
     return lowres_Image, r_count, x_bg, y_bg   
@@ -225,8 +226,8 @@ def bg_estimate(fx, fy, time, photons, framecount_per_sec, x_bg, y_bg, sky_radiu
     W = weights[mask]
 
     if len(T) != 0:
-        scaled_events = (np.sum(W) * radius**2) / float(sky_radius**2)
-        scaled_events_e = (np.sqrt(len(T)) * radius**2) / float(sky_radius**2)
+        scaled_events = (np.sum(W) * radius ** 2) / float(sky_radius ** 2)
+        scaled_events_e = (np.sqrt(len(T)) * radius ** 2) / float(sky_radius ** 2)
     else:
         scaled_events = 0
         scaled_events_e = 0
@@ -255,7 +256,7 @@ def create_sub_image(pos_x, pos_y,
     obj_circle = plt.Circle((pos_x, pos_y), cir_rad, 
                             color = 'k', fill = False)
 
-    plt.hist2d(obj_fx, obj_fy, bins = sub_size*2, norm = LogNorm())
+    plt.hist2d(obj_fx, obj_fy, bins = sub_size * 2, norm = LogNorm())
     plt.gcf().gca().add_artist(obj_circle)
     source_png_name = os.path.join(path_to_events_list, sub_name + events_list + '.png')
     plt.savefig(source_png_name, format = 'png', bbox_inches = 'tight')
