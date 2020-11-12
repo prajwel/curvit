@@ -291,6 +291,10 @@ def detect_sources_daofind(fx, fy, photons, threshold):
 
     mean, median, std = sigma_clipped_stats(data, sigma = 5., maxiters = 1)
     data = convolve(data, kernel)
+    # to avoid std becoming zero. 
+    if std == 0:
+        mean, median, std = sigma_clipped_stats(data, sigma = 5., maxiters = 1)
+        
     daofind = DAOStarFinder(fwhm = 3.0, threshold = threshold * std, exclude_border = True)
     sources = daofind(data - mean)    
     sources.sort('mag')
