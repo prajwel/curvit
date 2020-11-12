@@ -290,11 +290,12 @@ def detect_sources_daofind(fx, fy, photons, threshold):
     data = ndarray * mask
 
     mean, median, std = sigma_clipped_stats(data, sigma = 5., maxiters = 1)
-    data = convolve(data, kernel)
     # to avoid std becoming zero. 
     if std == 0:
-        mean, median, std = sigma_clipped_stats(data, sigma = 5., maxiters = 1)
+        mean = np.mean(data)
+        std = np.std(data)
         
+    data = convolve(data, kernel)
     daofind = DAOStarFinder(fwhm = 3.0, threshold = threshold * std, exclude_border = True)
     sources = daofind(data - mean)    
     sources.sort('mag')
@@ -422,7 +423,7 @@ def makecurves(events_list = events_list,
 
 
     if len(uA) == 0:
-        print('No sources, try increasing the "how_many" parameter.')
+        print('No sources, try changing the detection threshold parameter.')
         return
     
     coo_file = os.path.join(path_to_events_list, 'sources_' + events_list +'.coo')
