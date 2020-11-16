@@ -289,7 +289,7 @@ def detect_sources_daofind(fx, fy, photons, threshold):
     ndarray, yedges, xedges = np.histogram2d(fy, fx, bins = (bins, bins), weights = weights)  
     data = ndarray * mask
 
-    mean, median, std = sigma_clipped_stats(data, sigma = 5., maxiters = 1)
+    mean, _, std = sigma_clipped_stats(data, sigma = 5., maxiters = 1)
     # to avoid std becoming zero. 
     if std == 0:
         mean = np.mean(data)

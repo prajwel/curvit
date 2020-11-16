@@ -155,7 +155,7 @@ The curvit package has a set of parameters for which the users can set values. S
 
 > Note: It is essential to set the correct value of framerate. But most of the UVIT observations are carried out in 512 x 512 window mode. 
 
-* **background_auto** - Valid inputs are `None`, `'auto'`, or `'manual'`. The parameter affects how the background count-rate estimation is done. The default value is `None`, and no background estimation is carried out. `'auto'` will automatically estimate background count-rate. If you prefer to manually specify a background region, then give `'manual'` as the value and specify **x_bg** (background X-coordinate) and **y_bg** (background Y-coordinate) parameters. 
+* **background** - Valid inputs are `None`, `'auto'`, or `'manual'`. The parameter affects how the background count-rate estimation is done. The default value is `None`, and no background estimation is carried out. `'auto'` will automatically estimate background count-rate. If you prefer to manually specify a background region, then give `'manual'` as the value and specify **x_bg** (background X-coordinate) and **y_bg** (background Y-coordinate) parameters. 
 
 * **aperture_correction** - Valid inputs are `None`, `'fuv'`, or `'nuv'`. The default value is `None`. The parameter value can be changed to either `'fuv'` or `'nuv'` to apply aperture corrections to the light curve data. 
 
