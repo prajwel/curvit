@@ -1,1 +1,1 @@
-from .curvit import makecurves, curve, process_ccdlab
+from .curvit import makecurves, curve, process_ccdlab, makefits
