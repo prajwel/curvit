@@ -4,11 +4,10 @@
 Curvit is an open-source python package to produce light curves from UVIT (Ultraviolet Imaging Telescope) data.  The events list from the **official UVIT L2 pipeline (version 6.3 onwards)** is required as an input to the package. If you have data from old official pipeline versions or other pipelines, please contact me, and we can try to figure out a solution!
 
 ## Installation
-On Linux:
+
 ```sh
 pip install curvit --user
 ```
-Not yet tested on OS X and Windows. 
 
 ## Getting started
 
