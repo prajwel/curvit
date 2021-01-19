@@ -3,9 +3,11 @@
 
 Curvit is an open-source python package to produce light curves from UVIT (Ultraviolet Imaging Telescope) data.  The events list from the **official UVIT L2 pipeline (version 6.3 onwards)** is required as an input to the package. If you have data from old official pipeline versions or other pipelines, please contact me, and we can try to figure out a solution!
 
+The software paper manuscript is accessible at https://arxiv.org/abs/2101.06377
+
 ## Installation
 
-Curvit is on the Python Package Index (PyPI) and you can install the package using `pip` as follows:
+Curvit is on the Python Package Index (PyPI) and you can install the package using [pip](https://pip.pypa.io/en/stable/) as follows:
 
 ```sh
 pip install curvit --user
@@ -13,7 +15,7 @@ pip install curvit --user
 
 ### Requirements
 
-Curvit has the following requirements. If you have an older version of Python and is new to the language, I recommend that you install the [Anaconda Distribution](https://www.anaconda.com/products/individual). It installs Python in a user directory without requiring root permissions and will work on Windows, MacOS, and Linux.
+Curvit has the following requirements. If you have an older version of Python and is new to the language, I recommend that you install the [Anaconda Distribution](https://www.anaconda.com/products/individual). It installs Python in a user directory without requiring root permissions and will work on Linux, MacOS, and Windows.
 
 * Python 3.6 or later
 * Astropy
