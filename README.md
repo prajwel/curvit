@@ -2,6 +2,7 @@
 > Create light curves from UVIT data.
 
 <a href="https://ascl.net/2101.013"><img src="https://img.shields.io/badge/ascl-2101.013-blue.svg?colorB=262255" alt="ascl:2101.013" /></a>
+<a href="https://pypi.org/project/curvit/"><img src="https://img.shields.io/pypi/v/curvit?color=262255"/></a>
 
 Curvit is an open-source python package to produce light curves from UVIT (Ultraviolet Imaging Telescope) data.  The events list from the **official UVIT L2 pipeline (version 6.3 onwards)** is required as an input to the package. If you have data from old official pipeline versions or other pipelines, please contact me, and we can try to figure out a solution!
 
