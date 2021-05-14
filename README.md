@@ -107,7 +107,8 @@ The `makecurves` function of curvit can automatically detect sources from events
 
 ``` python
 >>> import curvit
->>> curvit.makecurves(events_list = 'AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.fits.gz', threshold = 5)
+>>> curvit.makecurves(events_list = 'AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.fits.gz',
+                      threshold = 5)
 ```
 ```
 Detected source coordinates saved in file:
@@ -148,10 +149,7 @@ data: curve_2636.71_907.91_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.dat
 plot: curve_2636.71_907.91_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
 
 Done!
-
-
 ```
-
 ![FO Aqr FUV source](https://i.imgur.com/R5q0K82.png)
 ![FO Aqr FUV zoomed_source](https://i.imgur.com/mTnZG2Y.png)
 ![FO Aqr FUV curve](https://i.imgur.com/3B1zdJI.png)
