@@ -132,18 +132,29 @@ Done!
 If you already have the source coordinates, the `curve` function of curvit can be used to create light curves.
 
 ``` python
->>> curvit.curve(events_list = 'AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.fits.gz', xp = 3137, yp = 3652)
+>>> curvit.curve(events_list = 'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits.gz', 
+                 xp = 2636.71, yp = 907.91,
+                 radius = 15,
+                 bwidth = 50, 
+                 background = 'auto')
 ```
 ```  
+The estimated background CPS = 0.00352 +/-0.00069
+
 -------------------------- curve --------------------------
-source: source_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
-        source_zoomed_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
-data: curve_3137_3652_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.dat
-plot: curve_3137_3652_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
+source: source_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+        source_zoomed_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+data: curve_2636.71_907.91_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.dat
+plot: curve_2636.71_907.91_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
 
 Done!
+
+
 ```
-![FO Aqr FUV curve](https://i.imgur.com/kKYReoW.png)
+
+![FO Aqr FUV source](https://i.imgur.com/R5q0K82.png)
+![FO Aqr FUV zoomed_source](https://i.imgur.com/mTnZG2Y.png)
+![FO Aqr FUV curve](https://i.imgur.com/3B1zdJI.png)
 
 ## Parameters
 The curvit package has a set of parameters for which the users can set values. Some of them have default values. 
