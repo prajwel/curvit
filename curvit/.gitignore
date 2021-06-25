@@ -1,0 +1,12 @@
+*fits
+*fits.gz
+__pycache__
+*png
+*coo
+*dat
+*csv
+*xy
+*ipynb
+.ipynb_checkpoints
+RAS_VIS
+check_curvit_variability*
