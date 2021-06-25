@@ -1,37 +1,132 @@
+<!doctype html>
+<html class="no-js">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="prev" title="Installation" href="install.html" />
 
-<!DOCTYPE html>
+    <meta name="generator" content="sphinx-4.0.2, furo 2021.06.24.beta37"/>
+        <title>Getting started - Curvit 1.2.5 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css" />
+    
 
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Getting started &#8212; Curvit 1.2.5 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/doctools.js"></script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Installation" href="install.html" />
-   
-  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+
+<style>
+  :root {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+  }
+
+  /* For allowing end-user-specific overrides */
+  .override-light {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  .override-dark {
+    --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+  }
+</style><link media="(prefers-color-scheme: dark)" rel="stylesheet" href="_static/pygments_dark.css"></head>
+  <body dir="">
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z"/>
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="10" y1="12" x2="20" y2="12" />
+      <line x1="6" y1="18" x2="20" y2="18" />
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">Curvit 1.2.5 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
   
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
+  <span class="sidebar-brand-text">Curvit 1.2.5 documentation</span>
   
+</a><form class="sidebar-search-container" method="get" action="search.html">
+  <input class="sidebar-search" placeholder=Search name="q">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Getting started</a></li>
+</ul>
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          
-
-          <div class="body" role="main">
-            
-  <div class="section" id="getting-started">
+</div>
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <main class="main">
+    <div class="content">
+      <article role="main">
+        <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+        </label>
+        <div class="section" id="getting-started">
 <h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
 <p>Curvit’s capabilities can be best demonstrated by examples.
 First, we need to get events list to be provided as input (an events list is a
@@ -112,21 +207,22 @@ as available in Level1 dataset (<code class="docutils literal notranslate"><span
 <p>This structure of subdirectories shall repeat for all sets - <code class="docutils literal notranslate"><span class="pre">uvt_01</span></code>, <code class="docutils literal notranslate"><span class="pre">uvt_02</span></code>, <code class="docutils literal notranslate"><span class="pre">uvt_03</span></code>, etc.</p>
 <p>For the examples given below, we will be using FUV events list (<code class="docutils literal notranslate"><span class="pre">...l2ce.fits</span></code>)
 from <code class="docutils literal notranslate"><span class="pre">uvt_03</span></code> as input to curvit.</p>
-<blockquote>
-<div><p><strong>IMPORTANT</strong>: The Level2 directory structure and FITS file naming
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>The Level2 directory structure and FITS file naming
 conventions here explained are for the Level2 data of 6.3 version
 obtained from ISSDC. Always refer to the <code class="docutils literal notranslate"><span class="pre">README.txt</span></code> included
 along with the Level2 data to understand the data structure.</p>
-</div></blockquote>
+</div>
 <div class="section" id="makecurves">
 <h2><code class="docutils literal notranslate"><span class="pre">makecurves</span></code><a class="headerlink" href="#makecurves" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">makecurves</span></code> function of curvit can automatically detect sources from
 events list and create light curves.
 Please note that curvit currently provides source coordinates
 only in the <strong>instrument coordinate system</strong>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">curvit</span>
-<span class="n">curvit</span><span class="o">.</span><span class="n">makecurves</span><span class="p">(</span><span class="n">events_list</span> <span class="o">=</span> <span class="s1">&#39;AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.fits.gz&#39;</span><span class="p">,</span>
-                  <span class="n">threshold</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">curvit</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">curvit</span><span class="o">.</span><span class="n">makecurves</span><span class="p">(</span><span class="n">events_list</span> <span class="o">=</span> <span class="s1">'AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.fits.gz'</span><span class="p">,</span>
+<span class="go">                      threshold = 5)</span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Detected source coordinates saved in file:
@@ -144,25 +240,25 @@ Detected sources are plotted in the image:
 Done!
 </pre></div>
 </div>
-<dl class="simple">
-<dt></dt><dd><p><strong>IMPORTANT</strong>: Zero-based indexing scheme is used in curvit.
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>Zero-based indexing scheme is used in curvit.
 Therefore, if you open the corresponding FITS image file in
 instrument coordinates (<code class="docutils literal notranslate"><span class="pre">...I_l2img.fits</span></code>) in DS9, there will be a
 difference of 1 between the source coordinates in DS9 and curvit.
 For example, the curvit coordinates of (2559, 806) will become
 (2560, 807) in FITS convention.</p>
-</dd>
-</dl>
+</div>
 </div>
 <div class="section" id="curve">
 <h2><code class="docutils literal notranslate"><span class="pre">curve</span></code><a class="headerlink" href="#curve" title="Permalink to this headline">¶</a></h2>
 <p>If you already have the source coordinates, the <code class="docutils literal notranslate"><span class="pre">curve</span></code> function of curvit
 can be used to create light curves.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">curvit</span><span class="o">.</span><span class="n">curve</span><span class="p">(</span><span class="n">events_list</span> <span class="o">=</span> <span class="s1">&#39;AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits.gz&#39;</span><span class="p">,</span>
-             <span class="n">xp</span> <span class="o">=</span> <span class="mf">2636.71</span><span class="p">,</span> <span class="n">yp</span> <span class="o">=</span> <span class="mf">907.91</span><span class="p">,</span>
-             <span class="n">radius</span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span>
-             <span class="n">bwidth</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
-             <span class="n">background</span> <span class="o">=</span> <span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">curvit</span><span class="o">.</span><span class="n">curve</span><span class="p">(</span><span class="n">events_list</span> <span class="o">=</span> <span class="s1">'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits.gz'</span><span class="p">,</span>
+<span class="go">                 xp = 2636.71, yp = 907.91,</span>
+<span class="go">                 radius = 15,</span>
+<span class="go">                 bwidth = 50,</span>
+<span class="go">                 background = 'auto')</span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>The estimated background CPS = 0.00352 +/-0.00069
@@ -176,7 +272,7 @@ plot: curve_2636.71_907.91_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
 Done!
 </pre></div>
 </div>
-<p><img alt="FO Aqr FUV source" src="https://i.imgur.com/R5q0K82.png" /> <img alt="FO Aqr FUV zoomed_source" src="https://i.imgur.com/mTnZG2Y.png" /> <img alt="FO Aqr FUV curve" src="https://i.imgur.com/3B1zdJI.png" /></p>
+<p><img alt="FO Aqr FUV source" src="https://i.imgur.com/R5q0K82.png"/> <img alt="FO Aqr FUV zoomed_source" src="https://i.imgur.com/mTnZG2Y.png"/> <img alt="FO Aqr FUV curve" src="https://i.imgur.com/3B1zdJI.png"/></p>
 </div>
 <div class="section" id="parameters">
 <h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
@@ -199,10 +295,10 @@ accurate way to get the framerate would be to take the value of
 corresponding image header. Approximate values of framerate for
 different window modes of UVIT are given in the table below.</p></li>
 </ul>
-<table class="docutils align-default">
+<div class="table-wrapper"><table class="docutils align-default">
 <colgroup>
-<col style="width: 42%" />
-<col style="width: 58%" />
+<col style="width: 42%"/>
+<col style="width: 58%"/>
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>window mode</p></th>
@@ -232,12 +328,13 @@ different window modes of UVIT are given in the table below.</p></li>
 <td><p>640</p></td>
 </tr>
 </tbody>
-</table>
-<blockquote>
-<div><p>Note: It is essential to set the correct value of framerate. But
+</table></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It is essential to set the correct value of framerate. But
 most of the UVIT observations are carried out in 512 x 512 window
 mode.</p>
-</div></blockquote>
+</div>
 <ul class="simple">
 <li><p><strong>background</strong> - Valid inputs are <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">'auto'</span></code>, or
 <code class="docutils literal notranslate"><span class="pre">'manual'</span></code>. The parameter affects how the background count-rate
@@ -277,74 +374,76 @@ using the <code class="docutils literal notranslate"><span class="pre">'kdtree'<
 </div>
 </div>
 
+      </article>
+      <footer>
+        
+        <div class="related-pages">
+          
+          <a class="prev-page" href="install.html">
+              <svg><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Installation</div>
+                
+              </div>
+            </a>
+        </div>
+
+        <div class="related-information">
+              Copyright &#169; 2021, Prajwel Joseph
+            |
+            Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
+              and
+              <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+              <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
+            |
+            <a class="muted-link" href="_sources/getting_started.rst.txt"
+               rel="nofollow">
+              Show Source
+            </a>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            Contents
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Getting started</a><ul>
+<li><a class="reference internal" href="#makecurves"><code class="docutils literal notranslate"><span class="pre">makecurves</span></code></a></li>
+<li><a class="reference internal" href="#curve"><code class="docutils literal notranslate"><span class="pre">curve</span></code></a></li>
+<li><a class="reference internal" href="#parameters">Parameters</a><ul>
+<li><a class="reference internal" href="#parameters-common-to-both-makecurves-and-curve">Parameters common to both <code class="docutils literal notranslate"><span class="pre">makecurves</span></code> and <code class="docutils literal notranslate"><span class="pre">curve</span></code></a></li>
+<li><a class="reference internal" href="#parameters-only-required-for-makecurves">Parameters only required for <code class="docutils literal notranslate"><span class="pre">makecurves</span></code></a></li>
+<li><a class="reference internal" href="#parameters-only-required-for-curve">Parameters only required for <code class="docutils literal notranslate"><span class="pre">curve</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 
           </div>
-          
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">Curvit</a></h1>
-
-
-
-
-
-
-
-
-<h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting started</a></li>
-</ul>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="install.html" title="previous chapter">Installation</a></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>$('#searchbox').show(0);</script>
-
-
-
-
-
-
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2021, Prajwel Joseph.
       
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
-      |
-      <a href="_sources/getting_started.rst.txt"
-          rel="nofollow">Page source</a>
-    </div>
-
-    
-
-    
-  </body>
+    </aside>
+  </main>
+</div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/scripts/main.js"></script>
+    </body>
 </html>

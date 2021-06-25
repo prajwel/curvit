@@ -91,7 +91,8 @@ This structure of subdirectories shall repeat for all sets - ``uvt_01``, ``uvt_0
 For the examples given below, we will be using FUV events list (``...l2ce.fits``) 
 from ``uvt_03`` as input to curvit.
 
-    **IMPORTANT**: The Level2 directory structure and FITS file naming
+.. IMPORTANT:: 
+    The Level2 directory structure and FITS file naming
     conventions here explained are for the Level2 data of 6.3 version
     obtained from ISSDC. Always refer to the ``README.txt`` included
     along with the Level2 data to understand the data structure.
@@ -107,9 +108,9 @@ only in the **instrument coordinate system**.
 
 .. code:: python
 
-    import curvit
-    curvit.makecurves(events_list = 'AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.fits.gz', 
-                      threshold = 5)
+    >>> import curvit
+    >>> curvit.makecurves(events_list = 'AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.fits.gz', 
+                          threshold = 5)
 
 ::
 
@@ -127,8 +128,9 @@ only in the **instrument coordinate system**.
 
     Done!
 
-\
-    **IMPORTANT**: Zero-based indexing scheme is used in curvit.
+
+.. IMPORTANT:: 
+    Zero-based indexing scheme is used in curvit.
     Therefore, if you open the corresponding FITS image file in
     instrument coordinates (``...I_l2img.fits``) in DS9, there will be a
     difference of 1 between the source coordinates in DS9 and curvit.
@@ -144,11 +146,11 @@ can be used to create light curves.
 
 .. code:: python
 
-    curvit.curve(events_list = 'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits.gz', 
-                 xp = 2636.71, yp = 907.91,
-                 radius = 15,
-                 bwidth = 50, 
-                 background = 'auto')
+    >>> curvit.curve(events_list = 'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits.gz', 
+                     xp = 2636.71, yp = 907.91,
+                     radius = 15,
+                     bwidth = 50, 
+                     background = 'auto')
 
 ::
 
@@ -211,7 +213,8 @@ Parameters common to both ``makecurves`` and ``curve``
 | 100 x 100     | 640                 |
 +---------------+---------------------+
 
-    Note: It is essential to set the correct value of framerate. But
+..  Note:: 
+    It is essential to set the correct value of framerate. But
     most of the UVIT observations are carried out in 512 x 512 window
     mode.
 
