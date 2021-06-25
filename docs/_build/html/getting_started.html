@@ -142,7 +142,7 @@ Here, for example, the publicly available Level2 data of FO Aqr was chosen
 file which needs to be extracted. Once extracted, a directory named
 <code class="docutils literal notranslate"><span class="pre">20161005_G06_084T01_9000000710_level2</span></code> can be found.
 This directory has the following structure.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>20161005_G06_084T01_9000000710_level2/
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>20161005_G06_084T01_9000000710_level2/
 └── uvit
     ├── RAS_NUV
     │   ├── pipeline
@@ -173,7 +173,7 @@ For most cases, the data from <code class="docutils literal notranslate"><span c
 If you download a dataset that is different than the one mentioned above,
 check the statistics inside <code class="docutils literal notranslate"><span class="pre">DISCLAIMER.txt</span></code> to decide what to use.</p>
 <p>Our directory of interest, <code class="docutils literal notranslate"><span class="pre">RAS_VIS</span></code>, has the following contents.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>RAS_VIS/
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>RAS_VIS/
 ├── pipeline
 │   └── LEVL2AS1UVT20161005G06_084_L2_DM_params.txt
 ├── uvt_01
@@ -334,9 +334,8 @@ different window modes of UVIT are given in the table below.</p></li>
 </table></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>It is essential to set the correct value of framerate. But
-most of the UVIT observations are carried out in 512 x 512 window
-mode.</p>
+<p>It is essential to set the correct value of the framerate. Most UVIT
+observations are carried out in 512 x 512 window mode.</p>
 </div>
 <ul class="simple">
 <li><p><strong>background</strong> - Valid inputs are <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">'auto'</span></code>, or

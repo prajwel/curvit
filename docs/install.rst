@@ -7,7 +7,9 @@ Curvit is on the Python Package Index (PyPI) and you can install the package usi
 
 .. _pip: https://pip.pypa.io/en/stable/
 
-``pip install curvit --user``
+.. code:: bash
+
+    pip install curvit --user
 
 ------------
 Requirements
