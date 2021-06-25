@@ -1,0 +1,350 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Getting started &#8212; Curvit 1.2.5 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Installation" href="install.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="getting-started">
+<h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<p>Curvit’s capabilities can be best demonstrated by examples.
+First, we need to get events list to be provided as input (an events list is a
+FITS file containing events).
+Go to ISSDC’s <a class="reference external" href="https://astrobrowse.issdc.gov.in/astro_archive/archive/Home.jsp">AstroBrowse website</a>
+and download UVIT data of your interest.
+Here, for example, the publicly available Level2 data of FO Aqr was chosen
+(Observation ID: <code class="docutils literal notranslate"><span class="pre">G06_084T01_9000000710</span></code>).</p>
+<p>This dataset, <code class="docutils literal notranslate"><span class="pre">LEVL2AS1UVT20161005G06_084T01_9000000710.zip</span></code>, is a compressed
+file which needs to be extracted. Once extracted, a directory named
+<code class="docutils literal notranslate"><span class="pre">20161005_G06_084T01_9000000710_level2</span></code> can be found.
+This directory has the following structure.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>20161005_G06_084T01_9000000710_level2/
+└── uvit
+    ├── RAS_NUV
+    │   ├── pipeline
+    │   ├── uvt_01
+    │   ├── uvt_02
+    │   ├── uvt_03
+    │   ├── ...
+    │   ├── ...
+    │   └── uvt_ci
+    ├── RAS_VIS
+    │   ├── pipeline
+    │   ├── uvt_01
+    │   ├── uvt_02
+    │   ├── uvt_03
+    │   ├── ...
+    │   ├── ...
+    │   └── uvt_ci
+    ├── DISCLAIMER.txt
+    ├── LEVL1AS1UVT20161005G06_084T01_9000000710_05546_V2.2_dqr.xml
+    └── README.txt
+</pre></div>
+</div>
+<p>Please read the <code class="docutils literal notranslate"><span class="pre">README.txt</span></code> for details on Level2 data and what it contains.
+<code class="docutils literal notranslate"><span class="pre">RAS_VIS</span></code> directory contains images that were corrected for satellite drift
+by using the VIS (visible) channel.
+For the images inside <code class="docutils literal notranslate"><span class="pre">RAS_NUV</span></code> directory, NUV (near-ultraviolet) channel was used.
+For most cases, the data from <code class="docutils literal notranslate"><span class="pre">RAS_VIS</span></code> would be suitable.
+If you download a dataset that is different than the one mentioned above,
+check the statistics inside <code class="docutils literal notranslate"><span class="pre">DISCLAIMER.txt</span></code> to decide what to use.</p>
+<p>Our directory of interest, <code class="docutils literal notranslate"><span class="pre">RAS_VIS</span></code>, has the following contents.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>RAS_VIS/
+├── pipeline
+│   └── LEVL2AS1UVT20161005G06_084_L2_DM_params.txt
+├── uvt_01
+│   ├── F_01
+│   │   ├── AS1G06_084T01_9000000710uvtFIIPC00F1A_l2err.fits
+│   │   ├── AS1G06_084T01_9000000710uvtFIIPC00F1A_l2exp.fits
+│   │   ├── AS1G06_084T01_9000000710uvtFIIPC00F1A_l2img.fits
+│   │   ├── AS1G06_084T01_9000000710uvtFIIPC00F1I_l2img.fits
+│   │   └── AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits
+│   ├── N_01
+│   │   ├── AS1G06_084T01_9000000710uvtNIIPC00F2A_l2err.fits
+│   │   ├── AS1G06_084T01_9000000710uvtNIIPC00F2A_l2exp.fits
+│   │   ├── AS1G06_084T01_9000000710uvtNIIPC00F2A_l2img.fits
+│   │   ├── AS1G06_084T01_9000000710uvtNIIPC00F2I_l2img.fits
+│   │   └── AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.fits
+│   └── V_01
+│       └── AS1G06_084T01_9000000710uvtVIIIM00F2_l2dr.fits
+├── ...
+├── ...
+</pre></div>
+</div>
+<p>Inside the directory <code class="docutils literal notranslate"><span class="pre">uvt_01</span></code>, data are organized in separate folders,
+each corresponding to overlapping time-ranges in UV and VIS channels,
+as available in Level1 dataset (<code class="docutils literal notranslate"><span class="pre">F_01</span></code>: FUV; <code class="docutils literal notranslate"><span class="pre">N_01</span></code>: NUV; <code class="docutils literal notranslate"><span class="pre">V_01</span></code>: VIS).</p>
+<p>The suffixes of the FITS files have the following meaning.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">...A_l2img.fits</span></code>: Image file in astronomical coordinates.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">...I_l2img.fits</span></code>: Image file in instrument coordinates.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">...A_l2exp.fits</span></code>: Exposure map for <code class="docutils literal notranslate"><span class="pre">A_l2img.fits</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">...A_l2err.fits</span></code>: Error map for <code class="docutils literal notranslate"><span class="pre">A_l2img.fits</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">...l2ce.fits</span></code> : Corrected events list.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">...l2dr.fits</span></code> : the Relative Aspects Series (RAS) file.</p></li>
+</ul>
+<p>This structure of subdirectories shall repeat for all sets - <code class="docutils literal notranslate"><span class="pre">uvt_01</span></code>, <code class="docutils literal notranslate"><span class="pre">uvt_02</span></code>, <code class="docutils literal notranslate"><span class="pre">uvt_03</span></code>, etc.</p>
+<p>For the examples given below, we will be using FUV events list (<code class="docutils literal notranslate"><span class="pre">...l2ce.fits</span></code>)
+from <code class="docutils literal notranslate"><span class="pre">uvt_03</span></code> as input to curvit.</p>
+<blockquote>
+<div><p><strong>IMPORTANT</strong>: The Level2 directory structure and FITS file naming
+conventions here explained are for the Level2 data of 6.3 version
+obtained from ISSDC. Always refer to the <code class="docutils literal notranslate"><span class="pre">README.txt</span></code> included
+along with the Level2 data to understand the data structure.</p>
+</div></blockquote>
+<div class="section" id="makecurves">
+<h2><code class="docutils literal notranslate"><span class="pre">makecurves</span></code><a class="headerlink" href="#makecurves" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">makecurves</span></code> function of curvit can automatically detect sources from
+events list and create light curves.
+Please note that curvit currently provides source coordinates
+only in the <strong>instrument coordinate system</strong>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">curvit</span>
+<span class="n">curvit</span><span class="o">.</span><span class="n">makecurves</span><span class="p">(</span><span class="n">events_list</span> <span class="o">=</span> <span class="s1">&#39;AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.fits.gz&#39;</span><span class="p">,</span>
+                  <span class="n">threshold</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Detected source coordinates saved in file:
+* sources_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.coo
+Detected sources are plotted in the image:
+* sources_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
+
+---------------------- light curves ----------------------
+* makecurves_3136.64_3651.08_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
+* makecurves_2530.02_1442.18_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
+* makecurves_2912.31_3657.17_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
+...
+...
+
+Done!
+</pre></div>
+</div>
+<dl class="simple">
+<dt></dt><dd><p><strong>IMPORTANT</strong>: Zero-based indexing scheme is used in curvit.
+Therefore, if you open the corresponding FITS image file in
+instrument coordinates (<code class="docutils literal notranslate"><span class="pre">...I_l2img.fits</span></code>) in DS9, there will be a
+difference of 1 between the source coordinates in DS9 and curvit.
+For example, the curvit coordinates of (2559, 806) will become
+(2560, 807) in FITS convention.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="curve">
+<h2><code class="docutils literal notranslate"><span class="pre">curve</span></code><a class="headerlink" href="#curve" title="Permalink to this headline">¶</a></h2>
+<p>If you already have the source coordinates, the <code class="docutils literal notranslate"><span class="pre">curve</span></code> function of curvit
+can be used to create light curves.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">curvit</span><span class="o">.</span><span class="n">curve</span><span class="p">(</span><span class="n">events_list</span> <span class="o">=</span> <span class="s1">&#39;AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits.gz&#39;</span><span class="p">,</span>
+             <span class="n">xp</span> <span class="o">=</span> <span class="mf">2636.71</span><span class="p">,</span> <span class="n">yp</span> <span class="o">=</span> <span class="mf">907.91</span><span class="p">,</span>
+             <span class="n">radius</span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span>
+             <span class="n">bwidth</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
+             <span class="n">background</span> <span class="o">=</span> <span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>The estimated background CPS = 0.00352 +/-0.00069
+
+-------------------------- curve --------------------------
+source: source_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+        source_zoomed_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+data: curve_2636.71_907.91_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.dat
+plot: curve_2636.71_907.91_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+
+Done!
+</pre></div>
+</div>
+<p><img alt="FO Aqr FUV source" src="https://i.imgur.com/R5q0K82.png" /> <img alt="FO Aqr FUV zoomed_source" src="https://i.imgur.com/mTnZG2Y.png" /> <img alt="FO Aqr FUV curve" src="https://i.imgur.com/3B1zdJI.png" /></p>
+</div>
+<div class="section" id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
+<p>The curvit package has a set of parameters for which the users can set values.
+Some of them have default values.</p>
+<div class="section" id="parameters-common-to-both-makecurves-and-curve">
+<h3>Parameters common to both <code class="docutils literal notranslate"><span class="pre">makecurves</span></code> and <code class="docutils literal notranslate"><span class="pre">curve</span></code><a class="headerlink" href="#parameters-common-to-both-makecurves-and-curve" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><strong>events_list</strong> - The name of the events list (<code class="docutils literal notranslate"><span class="pre">...l2ce.fits</span></code>).
+The string can also include the path to the file.</p></li>
+<li><p><strong>radius</strong> - The radius of the source aperture in pixels. This
+parameter has a default value of <code class="docutils literal notranslate"><span class="pre">6</span></code>.</p></li>
+<li><p><strong>sky_radius</strong> - The radius of the background aperture in pixels.
+The default value is <code class="docutils literal notranslate"><span class="pre">12</span></code>.</p></li>
+<li><p><strong>bwidth</strong> - Time bin width in seconds. Default value is <code class="docutils literal notranslate"><span class="pre">50</span></code>.</p></li>
+<li><p><strong>framecount_per_sec</strong> - Framerate, with a default value of
+<code class="docutils literal notranslate"><span class="pre">28.7185</span></code> frames per second for 512 x 512 window mode. The most
+accurate way to get the framerate would be to take the value of
+(<code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">INT_TIME</span></code>). <code class="docutils literal notranslate"><span class="pre">INT_TIME</span></code> value can be found from the
+corresponding image header. Approximate values of framerate for
+different window modes of UVIT are given in the table below.</p></li>
+</ul>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 42%" />
+<col style="width: 58%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>window mode</p></th>
+<th class="head"><p>frames per second</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>512 x 512</p></td>
+<td><p>28.7</p></td>
+</tr>
+<tr class="row-odd"><td><p>350 x 350</p></td>
+<td><p>61</p></td>
+</tr>
+<tr class="row-even"><td><p>300 x 300</p></td>
+<td><p>82</p></td>
+</tr>
+<tr class="row-odd"><td><p>250 x 250</p></td>
+<td><p>115</p></td>
+</tr>
+<tr class="row-even"><td><p>200 x 200</p></td>
+<td><p>180</p></td>
+</tr>
+<tr class="row-odd"><td><p>150 x 150</p></td>
+<td><p>300</p></td>
+</tr>
+<tr class="row-even"><td><p>100 x 100</p></td>
+<td><p>640</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><p>Note: It is essential to set the correct value of framerate. But
+most of the UVIT observations are carried out in 512 x 512 window
+mode.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p><strong>background</strong> - Valid inputs are <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">'auto'</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">'manual'</span></code>. The parameter affects how the background count-rate
+estimation is done. The default value is <code class="docutils literal notranslate"><span class="pre">None</span></code>, and no background
+estimation is carried out. <code class="docutils literal notranslate"><span class="pre">'auto'</span></code> will automatically estimate
+background count-rate. If you prefer to manually specify a background
+region, then give <code class="docutils literal notranslate"><span class="pre">'manual'</span></code> as the value and specify <strong>x_bg</strong>
+(background X-coordinate) and <strong>y_bg</strong> (background Y-coordinate)
+parameters.</p></li>
+<li><p><strong>aperture_correction</strong> - Valid inputs are <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">'fuv'</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">'nuv'</span></code>. The default value is <code class="docutils literal notranslate"><span class="pre">None</span></code>. The parameter value can be
+changed to either <code class="docutils literal notranslate"><span class="pre">'fuv'</span></code> or <code class="docutils literal notranslate"><span class="pre">'nuv'</span></code> to apply aperture
+corrections to the light curve data.</p></li>
+<li><p><strong>saturation_correction</strong> - Takes either <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>. The
+default value is <code class="docutils literal notranslate"><span class="pre">False</span></code>. If the parameter is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>,
+saturation correction is applied to the light curve data.</p></li>
+</ul>
+</div>
+<div class="section" id="parameters-only-required-for-makecurves">
+<h3>Parameters only required for <code class="docutils literal notranslate"><span class="pre">makecurves</span></code><a class="headerlink" href="#parameters-only-required-for-makecurves" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><strong>detection_method</strong> - Two source detection methods are available:
+<code class="docutils literal notranslate"><span class="pre">'daofind'</span></code> and <code class="docutils literal notranslate"><span class="pre">'kdtree'</span></code>. The default method is <code class="docutils literal notranslate"><span class="pre">'daofind'</span></code>.</p></li>
+<li><p><strong>threshold</strong> - The threshold parameter associated with the
+<code class="docutils literal notranslate"><span class="pre">'daofind'</span></code> method. The default value is <code class="docutils literal notranslate"><span class="pre">4</span></code>.</p></li>
+<li><p><strong>how_many</strong> - The limit for the number of sources to be detected
+using the <code class="docutils literal notranslate"><span class="pre">'kdtree'</span></code> method. The default value is <code class="docutils literal notranslate"><span class="pre">4</span></code>.</p></li>
+</ul>
+</div>
+<div class="section" id="parameters-only-required-for-curve">
+<h3>Parameters only required for <code class="docutils literal notranslate"><span class="pre">curve</span></code><a class="headerlink" href="#parameters-only-required-for-curve" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><strong>xp</strong> - X-coordinate of the source.</p></li>
+<li><p><strong>yp</strong> - Y-coordinate of the source.</p></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Curvit</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting started</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="install.html" title="previous chapter">Installation</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Prajwel Joseph.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/getting_started.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
