@@ -25,6 +25,7 @@ familiarized with Curvit and creating your own light curves using UVIT data.
    preamble.rst
    install.rst
    getting_started.rst
+   citation.rst
 
 
 
