@@ -216,8 +216,8 @@ def auto_bg(fx, fy, time, photons, framecount_per_sec, sky_radius):
     sample_size = 100
     for d in range(sample_size):
         r_count, x_bg, y_bg = random.choice(polished_array[bg_mask])
-        bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, photons, 
-                                       framecount_per_sec, x_bg, y_bg, sky_radius)
+        bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, photons, framecount_per_sec,
+                                       radius, x_bg, y_bg, sky_radius)
         bg_CPS_sample.append(bg_CPS)
         bg_CPS_e_sample.append(bg_CPS_e)
         
@@ -230,7 +230,7 @@ def auto_bg(fx, fy, time, photons, framecount_per_sec, sky_radius):
     return lowres_counts, bg_CPS, bg_CPS_e   
     
 # To estimate background CPS.
-def bg_estimate(fx, fy, time, photons, framecount_per_sec, x_bg, y_bg, sky_radius):
+def bg_estimate(fx, fy, time, photons, framecount_per_sec, radius, x_bg, y_bg, sky_radius):
 
     weights = photons / framecount_per_sec    
     mask = ((fx - x_bg) ** 2 + (fy - y_bg) ** 2) <= sky_radius ** 2    
@@ -470,8 +470,8 @@ def makecurves(events_list = events_list,
             print('\nThe estimated background CPS = {:.5f} +/-{:.5f}'.format(bg_CPS, bg_CPS_e))
         if background == 'manual':
             # To estimate Background CPS.
-            bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, photons, 
-                                           framecount_per_sec, x_bg, y_bg, sky_radius)
+            bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, photons, framecount_per_sec,
+                                           radius, x_bg, y_bg, sky_radius)
             bg_png = create_sub_image(x_bg, y_bg, 
                                       sub_fig_size, 
                                       sky_radius, 
@@ -596,6 +596,22 @@ def curve(events_list = events_list,
           whole_figure_resolution = whole_figure_resolution,
           sub_fig_size = sub_fig_size,
           fontsize = fontsize):
+          
+          
+    """
+    Create light curve for a source.
+
+    Parameters
+    ----------
+    events_list : file path
+        Name of the events list FITS file
+    xp : float
+        X-coordinate of the source
+    yp : float
+        Y-coordinate of the source        
+ 
+        
+    """
 
     time, fx, fy, photons = read_columns(events_list)
     weights = photons / framecount_per_sec
@@ -663,8 +679,8 @@ def curve(events_list = events_list,
             print('\nThe estimated background CPS = {:.5f} +/-{:.5f}'.format(bg_CPS, bg_CPS_e))
         if background == 'manual':
             # To estimate Background CPS.
-            bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, photons, 
-                                           framecount_per_sec, x_bg, y_bg, sky_radius)
+            bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, photons, framecount_per_sec,
+                                           radius, x_bg, y_bg, sky_radius)
             bg_png = create_sub_image(x_bg, y_bg, 
                                       sub_fig_size, 
                                       sky_radius, 
@@ -800,6 +816,17 @@ def process_ccdlab(output = None,
     return   
 
 def makefits(events_list):
+
+    """
+    Create a FITS image from the input events list.
+
+    Parameters
+    ----------
+    events_list : file path
+        Name of the events list FITS file
+        
+    """
+
     time, fx, fy, photons = read_columns(events_list)
     weights = photons / framecount_per_sec
     bins = np.arange(0, 4801)

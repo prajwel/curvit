@@ -19,13 +19,16 @@ familiarized with Curvit and creating your own light curves using UVIT data.
     by providing citation.  
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:   
+    :maxdepth: 2
+    :caption: Contents:   
 
-   preamble.rst
-   install.rst
-   getting_started.rst
-   citation.rst
+    preamble.rst
+    install.rst
+    getting_started.rst
+    citation.rst
+    api.rst
+   
+
 
 
 
