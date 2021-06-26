@@ -138,13 +138,26 @@
 <h1><a class="reference internal" href="#curvit.makefits" title="curvit.makefits"><code class="xref py py-func docutils literal notranslate"><span class="pre">makefits()</span></code></a><a class="headerlink" href="#makefits" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="curvit.makefits">
-<span class="sig-prename descclassname"><span class="pre">curvit.</span></span><span class="sig-name descname"><span class="pre">makefits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events_list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#curvit.makefits" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a FITS image from the input events list.</p>
+<span class="sig-prename descclassname"><span class="pre">curvit.</span></span><span class="sig-name descname"><span class="pre">makefits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">framecount_per_sec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">28.7185</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#curvit.makefits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a quick look FITS image from the input events list.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>events_list</strong> (<em>file path</em>) – Name of the events list FITS file</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>events_list</strong> (<em>file path</em>) – Name of the events list FITS file.</p></li>
+<li><p><strong>framecount_per_sec</strong> (<em>float</em><em>, </em><em>optional</em>) – framerate of the observation.</p></li>
+</ul>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>If you plan to use the generated FITS image for science,
+make sure to give the proper framerate value.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">curvit</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">curvit</span><span class="o">.</span><span class="n">makefits</span><span class="p">(</span><span class="s1">'test_events_list.fits'</span><span class="p">,</span> <span class="mf">28.7185</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The above script will generate a FITS image called <code class="docutils literal notranslate"><span class="pre">test_events_list_quick_look.fits</span></code>.
+You may open it in software such as DS9 to view the image.</p>
 </dd></dl>
 </div>
 

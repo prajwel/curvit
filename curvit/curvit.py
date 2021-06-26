@@ -815,15 +815,31 @@ def process_ccdlab(output = None,
     tbhdu.writeto(output, overwrite = True)   
     return   
 
-def makefits(events_list):
+def makefits(events_list = events_list, 
+             framecount_per_sec = framecount_per_sec):
 
     """
-    Create a FITS image from the input events list.
+    Create a quick look FITS image from the input events list.
 
     Parameters
     ----------
     events_list : file path
-        Name of the events list FITS file
+        Name of the events list FITS file.
+    framecount_per_sec: float, optional
+        framerate of the observation. 
+        
+    Notes
+    -----
+    If you plan to use the generated FITS image for science,
+    make sure to give the proper framerate value. 
+        
+    Examples
+    --------
+    >>> import curvit
+    >>> curvit.makefits('test_events_list.fits', 28.7185)
+    
+    The above script will generate a FITS image called ``test_events_list_quick_look.fits``.
+    You may open it in software such as DS9 to view the image. 
         
     """
 
