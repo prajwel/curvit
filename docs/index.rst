@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. image:: curvit_logo.svg
+.. image:: curvit_banner.svg
 
 Welcome to Curvit's documentation!
 This website will walk you through the steps of installing and getting
