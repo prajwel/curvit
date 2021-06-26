@@ -826,7 +826,7 @@ def makefits(events_list = events_list,
     events_list : file path
         Name of the events list FITS file.
     framecount_per_sec: float, optional
-        framerate of the observation. 
+        Framerate of the observation. 
         
     Warning
     -------

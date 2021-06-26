@@ -7,15 +7,15 @@
 
 Welcome to Curvit's documentation!
 This website will walk you through the steps of installing and getting
-familiarized with Curvit and creating your own light curves using UVIT data. 
+familiarized with Curvit and creating light curves using UVIT data. 
 
 .. important::
     If you use Curvit for work presented in a publication or talk, please help 
-    by providing :ref:`citation`. 
+    by providing a :ref:`citation`. 
     
 .. caution::
-    The software is undergoing `active developement <https://github.com/prajwel/curvit>`_. 
-    For new features and bug fixes, always refer the updated documentation 
+    The software is under `active development <https://github.com/prajwel/curvit>`_. 
+    For new features and bug fixes, always refer to the updated documentation 
     and check for upgrades using::
     
         pip install curvit --upgrade
