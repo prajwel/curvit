@@ -16,7 +16,13 @@ familiarized with Curvit and creating your own light curves using UVIT data.
 
 .. important::
     If you use Curvit for work presented in a publication or talk, please help 
-    by providing citation.  
+    by providing citation. 
+    
+.. caution::
+    The software is undergoing active developement. For new features and bug fixes, 
+    always refer the updated documentation and check for upgrades using::
+    
+        pip install curvit --upgrade
 
 .. toctree::
     :maxdepth: 2
