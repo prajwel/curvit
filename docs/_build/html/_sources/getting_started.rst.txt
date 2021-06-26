@@ -15,7 +15,7 @@ file which needs to be extracted. Once extracted, a directory named
 ``20161005_G06_084T01_9000000710_level2`` can be found. 
 This directory has the following structure.
 
-::
+.. code:: bash
 
     20161005_G06_084T01_9000000710_level2/
     └── uvit
@@ -49,7 +49,7 @@ check the statistics inside ``DISCLAIMER.txt`` to decide what to use.
 
 Our directory of interest, ``RAS_VIS``, has the following contents.
 
-::
+.. code:: bash
 
     RAS_VIS/
     ├── pipeline
@@ -214,9 +214,8 @@ Parameters common to both ``makecurves`` and ``curve``
 +---------------+---------------------+
 
 ..  Note:: 
-    It is essential to set the correct value of framerate. But
-    most of the UVIT observations are carried out in 512 x 512 window
-    mode.
+    It is essential to set the correct value of the framerate. Most UVIT 
+    observations are carried out in 512 x 512 window mode.
 
 -  **background** - Valid inputs are ``None``, ``'auto'``, or
    ``'manual'``. The parameter affects how the background count-rate

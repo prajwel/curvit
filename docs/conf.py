@@ -12,7 +12,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- Project information -----------------------------------------------------
@@ -22,7 +22,7 @@ copyright = '2021, Prajwel Joseph'
 author = 'Prajwel Joseph'
 
 # The full version, including alpha/beta/rc tags
-release = '1.2.5'
+release = ''
 
 
 # -- General configuration ---------------------------------------------------
@@ -30,7 +30,9 @@ release = '1.2.5'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = [
+extensions = ['sphinx_copybutton',
+              'sphinx.ext.napoleon',
+              'sphinx.ext.autodoc'
 ]
 
 # Add any paths that contain templates here, relative to this directory.

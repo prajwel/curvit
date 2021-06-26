@@ -3,11 +3,6 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-
-    ==================================
-    Welcome to Curvit's documentation!
-    ==================================
-
 .. image:: curvit_logo.svg
 
 Welcome to Curvit's documentation!
@@ -16,15 +11,26 @@ familiarized with Curvit and creating your own light curves using UVIT data.
 
 .. important::
     If you use Curvit for work presented in a publication or talk, please help 
-    by providing citation.  
+    by providing citation. 
+    
+.. caution::
+    The software is undergoing active developement. For new features and bug fixes, 
+    always refer the updated documentation and check for upgrades using::
+    
+        pip install curvit --upgrade
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:   
+    :maxdepth: 2
+    :caption: Contents:   
 
-   preamble.rst
-   install.rst
-   getting_started.rst
+    preamble
+    install
+    getting_started
+    citation
+    api
+    report_bugs
+   
+
 
 
 
