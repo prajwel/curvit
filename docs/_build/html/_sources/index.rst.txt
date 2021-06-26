@@ -23,11 +23,12 @@ familiarized with Curvit and creating your own light curves using UVIT data.
     :maxdepth: 2
     :caption: Contents:   
 
-    preamble.rst
-    install.rst
-    getting_started.rst
-    citation.rst
-    api.rst
+    preamble
+    install
+    getting_started
+    citation
+    api
+    report_bugs
    
 
 

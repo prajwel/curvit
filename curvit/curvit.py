@@ -828,12 +828,12 @@ def makefits(events_list = events_list,
     framecount_per_sec: float, optional
         framerate of the observation. 
         
-    Notes
-    -----
+    Warning
+    -------
     If you plan to use the generated FITS image for science,
     make sure to give the proper framerate value. 
         
-    Examples
+    Example
     --------
     >>> import curvit
     >>> curvit.makefits('test_events_list.fits', 28.7185)

@@ -22,7 +22,7 @@ copyright = '2021, Prajwel Joseph'
 author = 'Prajwel Joseph'
 
 # The full version, including alpha/beta/rc tags
-release = '1.3.0'
+release = ''
 
 
 # -- General configuration ---------------------------------------------------
