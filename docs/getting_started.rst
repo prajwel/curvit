@@ -7,11 +7,12 @@ First, we need to get events list to be provided as input (an events list is a
 FITS file containing events). 
 Go to ISSDC's `AstroBrowse website <https://astrobrowse.issdc.gov.in/astro_archive/archive/Home.jsp>`__ 
 and download UVIT data of your interest. 
-Here, for example, the publicly available Level2 data of FO Aqr was chosen 
+Here, as an example, the publicly available Level2 data of FO Aqr was chosen 
 (Observation ID: ``G06_084T01_9000000710``).
 
 This dataset, ``LEVL2AS1UVT20161005G06_084T01_9000000710.zip``, is a compressed 
-file which needs to be extracted. Once extracted, a directory named 
+file that needs to be extracted. 
+Once extracted, a directory named 
 ``20161005_G06_084T01_9000000710_level2`` can be found. 
 This directory has the following structure.
 
@@ -42,9 +43,10 @@ This directory has the following structure.
 Please read the ``README.txt`` for details on Level2 data and what it contains. 
 ``RAS_VIS`` directory contains images that were corrected for satellite drift 
 by using the VIS (visible) channel. 
-For the images inside ``RAS_NUV`` directory, NUV (near-ultraviolet) channel was used. 
+For drift correcting the images inside the ``RAS_NUV`` directory, 
+NUV (near-ultraviolet) channel was used. 
 For most cases, the data from ``RAS_VIS`` would be suitable. 
-If you download a dataset that is different than the one mentioned above, 
+If you download a dataset that is different from the one mentioned above, 
 check the statistics inside ``DISCLAIMER.txt`` to decide what to use.
 
 Our directory of interest, ``RAS_VIS``, has the following contents.
@@ -74,7 +76,7 @@ Our directory of interest, ``RAS_VIS``, has the following contents.
 
 
 Inside the directory ``uvt_01``, data are organized in separate folders, 
-each corresponding to overlapping time-ranges in UV and VIS channels, 
+each corresponding to overlapping time ranges in UV and VIS channels, 
 as available in Level1 dataset (``F_01``: FUV; ``N_01``: NUV; ``V_01``: VIS).
 
 The suffixes of the FITS files have the following meaning.
@@ -88,12 +90,12 @@ The suffixes of the FITS files have the following meaning.
 
 This structure of subdirectories shall repeat for all sets - ``uvt_01``, ``uvt_02``, ``uvt_03``, etc.
 
-For the examples given below, we will be using FUV events list (``...l2ce.fits``) 
+For the examples given below, we will be using the FUV events list (``...l2ce.fits``) 
 from ``uvt_03`` as input to curvit.
 
 .. IMPORTANT:: 
     The Level2 directory structure and FITS file naming
-    conventions here explained are for the Level2 data of 6.3 version
+    conventions here explained are for the Level2 data of the 6.3 version
     obtained from ISSDC. Always refer to the ``README.txt`` included
     along with the Level2 data to understand the data structure.
 
@@ -102,7 +104,7 @@ from ``uvt_03`` as input to curvit.
 --------------
 
 The ``makecurves`` function of curvit can automatically detect sources from 
-events list and create light curves. 
+the events list and create light curves. 
 Please note that curvit currently provides source coordinates 
 only in the **instrument coordinate system**.
 
@@ -130,19 +132,19 @@ only in the **instrument coordinate system**.
 
 
 .. IMPORTANT:: 
-    Zero-based indexing scheme is used in curvit.
+    The zero-based indexing scheme is used in curvit.
     Therefore, if you open the corresponding FITS image file in
     instrument coordinates (``...I_l2img.fits``) in DS9, there will be a
     difference of 1 between the source coordinates in DS9 and curvit.
     For example, the curvit coordinates of (2559, 806) will become
-    (2560, 807) in FITS convention.
+    (2560, 807) in the FITS convention.
 
 ---------
 ``curve``
 ---------
 
-If you already have the source coordinates, the ``curve`` function of curvit 
-can be used to create light curves.
+If you know the source coordinates, use the ``curve`` function of curvit 
+to create light curves.
 
 .. code:: python
 
@@ -186,7 +188,7 @@ Parameters common to both ``makecurves`` and ``curve``
 -  **sky_radius** - The radius of the background aperture in pixels.
    The default value is ``12``.
 
--  **bwidth** - Time bin width in seconds. Default value is ``50``.
+-  **bwidth** - Time bin width in seconds. the default value is ``50``.
 
 -  **framecount_per_sec** - Framerate, with a default value of
    ``28.7185`` frames per second for 512 x 512 window mode. The most
@@ -220,15 +222,15 @@ Parameters common to both ``makecurves`` and ``curve``
 -  **background** - Valid inputs are ``None``, ``'auto'``, or
    ``'manual'``. The parameter affects how the background count-rate
    estimation is done. The default value is ``None``, and no background
-   estimation is carried out. ``'auto'`` will automatically estimate
-   background count-rate. If you prefer to manually specify a background
-   region, then give ``'manual'`` as the value and specify **x_bg**
+   estimation is carried out. ``'auto'`` will automatically estimate the 
+   background count-rate. If you prefer to specify a background region 
+   manually, then give ``'manual'`` as the value and specify **x_bg**
    (background X-coordinate) and **y_bg** (background Y-coordinate)
    parameters.
 
 -  **aperture_correction** - Valid inputs are ``None``, ``'fuv'``, or
-   ``'nuv'``. The default value is ``None``. The parameter value can be
-   changed to either ``'fuv'`` or ``'nuv'`` to apply aperture
+   ``'nuv'``. The default value is ``None``. The parameter value should be
+   changed to either ``'fuv'`` or ``'nuv'`` to apply appropriate aperture
    corrections to the light curve data.
 
 -  **saturation_correction** - Takes either ``True`` or ``False``. The
