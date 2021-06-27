@@ -30,6 +30,7 @@ familiarized with Curvit and creating light curves using UVIT data.
     citation
     api
     report_bugs
+    changelog
    
 
 
