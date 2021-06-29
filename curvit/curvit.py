@@ -670,7 +670,7 @@ def curve(events_list = events_list,
         * ``'nuv'``: Aperture correction for the NUV channel is applied.
         * ``None``: No aperture correction is applied. This is the default method.
         
-    saturation_correction : bool
+    saturation_correction : bool, optional
         If `True`, saturation correction is applied. 
         The default value is `False`. 
 
@@ -683,10 +683,10 @@ def curve(events_list = events_list,
     Example
     --------
     >>> curvit.curve(events_list = 'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits.gz', 
-                     xp = 2636.71, yp = 907.91,
-                     radius = 15,
-                     bwidth = 50, 
-                     background = 'auto')
+    ...              xp = 2636.71, yp = 907.91,
+    ...              radius = 15,
+    ...              bwidth = 50, 
+    ...              background = 'auto')
     """
 
     time, fx, fy, photons = read_columns(events_list)
@@ -933,11 +933,11 @@ def process_ccdlab(output = None,
     --------
     >>> import curvit
     >>> process_ccdlab(output = 'output_events_list.fits',
-                       time_list = 'sample_TimeList.fits', 
-                       XY_integers = 'sample_XYInts_List.fits',
-                       XY_fractions = 'sample_XYFrac_List.fits',
-                       flat_list = 'sample_FlatList.fits',
-                       framecount_per_sec = 28.7185)
+    ...                time_list = 'sample_TimeList.fits', 
+    ...                XY_integers = 'sample_XYInts_List.fits',
+    ...                XY_fractions = 'sample_XYFrac_List.fits',
+    ...                flat_list = 'sample_FlatList.fits',
+    ...                framecount_per_sec = 28.7185)
     
     The above script will generate a FITS table called ``output_events_list.fits``.
     You may then use it as input to ``curve`` or ``makecurves``. 

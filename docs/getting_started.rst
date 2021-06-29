@@ -112,7 +112,7 @@ only in the **instrument coordinate system**.
 
     >>> import curvit
     >>> curvit.makecurves(events_list = 'AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.fits.gz', 
-                          threshold = 5)
+    ...                   threshold = 5)
 
 ::
 
@@ -149,10 +149,10 @@ to create light curves.
 .. code:: python
 
     >>> curvit.curve(events_list = 'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits.gz', 
-                     xp = 2636.71, yp = 907.91,
-                     radius = 15,
-                     bwidth = 50, 
-                     background = 'auto')
+    ...              xp = 2636.71, yp = 907.91,
+    ...              radius = 15,
+    ...              bwidth = 50, 
+    ...              background = 'auto')
 
 ::
 
