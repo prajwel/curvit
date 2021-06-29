@@ -156,7 +156,7 @@ to create light curves.
 
 ::
 
-    The estimated background CPS = 0.00352 +/-0.00069
+    The estimated background CPS = 0.02113 +/-0.00421
 
     -------------------------- curve --------------------------
     source: source_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png

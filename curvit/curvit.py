@@ -800,13 +800,13 @@ def curve(events_list = events_list,
     --------
     >>> curvit.curve(events_list = 'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits.gz', 
     ...              xp = 2636.71, yp = 907.91,
-    ...              radius = 6,
+    ...              radius = 15,
     ...              bwidth = 50, 
     ...              background = 'auto')
     
     ::
     
-        The estimated background CPS = 0.00352 +/-0.00069
+        The estimated background CPS = 0.02155 +/-0.00425
 
         -------------------------- curve --------------------------
         source: source_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
