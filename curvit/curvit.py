@@ -191,7 +191,7 @@ def modify_string(events_list):
     return events_list
 
 # To automatically choose background region.
-def auto_bg(fx, fy, time, photons, framecount_per_sec, sky_radius): 
+def auto_bg(fx, fy, time, photons, radius, framecount_per_sec, sky_radius): 
     weights = photons / framecount_per_sec    
     bins = np.arange(0, 4801, 16)    
     lowres_counts, lowres_xedges, lowres_yedges = np.histogram2d(fx, fy, 
@@ -549,7 +549,7 @@ def makecurves(events_list = events_list,
     # To automatically choose background region.
     plt.figure(figsize = (10.5, 10))
     if background == 'auto':
-        lowres_counts, bg_CPS, bg_CPS_e = auto_bg(fx, fy, time, photons, 
+        lowres_counts, bg_CPS, bg_CPS_e = auto_bg(fx, fy, time, photons, radius,
                                                   framecount_per_sec, sky_radius)
        
     # To create a quick look figure marking sources and background.
@@ -842,7 +842,7 @@ def curve(events_list = events_list,
     # To automatically choose background region.
     plt.figure(figsize = (10.5, 10))
     if background == 'auto':
-        lowres_counts, bg_CPS, bg_CPS_e = auto_bg(fx, fy, time, photons, 
+        lowres_counts, bg_CPS, bg_CPS_e = auto_bg(fx, fy, time, photons, radius,
                                                   framecount_per_sec, sky_radius)
         
     # To create a quick look figure marking sources and background.
