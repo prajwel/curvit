@@ -188,7 +188,7 @@ Parameters common to both ``makecurves`` and ``curve``
 -  **sky_radius** - The radius of the background aperture in pixels.
    The default value is ``12``.
 
--  **bwidth** - Time bin width in seconds. the default value is ``50``.
+-  **bwidth** - Time bin width in seconds. The default value is ``50``.
 
 -  **framecount_per_sec** - Framerate, with a default value of
    ``28.7185`` frames per second for 512 x 512 window mode. The most
