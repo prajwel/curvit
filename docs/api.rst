@@ -5,4 +5,5 @@ API
 .. toctree::
     :maxdepth: 3
 
-    api/makefits.rst
+    api/makefits
+    api/process_ccdlab

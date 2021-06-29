@@ -796,6 +796,43 @@ def process_ccdlab(output = None,
                    XY_fractions = None, 
                    flat_list = None, 
                    framecount_per_sec = framecount_per_sec):
+                   
+    """
+    Create a Curvit compatible events list from CCDLAB files.
+
+    Parameters
+    ----------
+    output: file path
+        Name of the output events list FITS file.
+    time_list: file path
+        Name of the CCDLAB time list FITS file
+    XY_integers: file path
+        Name of the CCDLAB XY_integers FITS file
+    XY_fractions: file path
+        Name of the CCDLAB XY_fractions FITS file
+    flat_list: file path
+        Name of the CCDLAB flat list FITS file
+    framecount_per_sec: float, optional
+        Framerate of the observation. 
+        
+    Warning
+    -------
+    This function is new; please report if you find any bugs.
+        
+    Example
+    --------
+    >>> import curvit
+    >>> process_ccdlab(output = 'output_events_list.fits',
+                       time_list = 'sample_TimeList.fits', 
+                       XY_integers = 'sample_XYInts_List.fits',
+                       XY_fractions = 'sample_XYFrac_List.fits',
+                       flat_list = 'sample_FlatList.fits',
+                       framecount_per_sec = 28.7185)
+    
+    The above script will generate a FITS table called ``output_events_list.fits``.
+    You may then use it as input to ``curve`` or ``makecurves``. 
+        
+    """
     
     time = fits.open(time_list)[0].data / 1000
     XYFrac = fits.open(XY_fractions)[0].data
@@ -823,7 +860,7 @@ def makefits(events_list = events_list,
 
     Parameters
     ----------
-    events_list : file path
+    events_list: file path
         Name of the events list FITS file.
     framecount_per_sec: float, optional
         Framerate of the observation. 
