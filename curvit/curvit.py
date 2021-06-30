@@ -191,7 +191,7 @@ def modify_string(events_list):
     return events_list
 
 # To automatically choose background region.
-def auto_bg(fx, fy, time, photons, framecount_per_sec, sky_radius): 
+def auto_bg(fx, fy, time, photons, radius, framecount_per_sec, sky_radius): 
     weights = photons / framecount_per_sec    
     bins = np.arange(0, 4801, 16)    
     lowres_counts, lowres_xedges, lowres_yedges = np.histogram2d(fx, fy, 
@@ -382,6 +382,7 @@ def apply_saturation_correction(CPF5, CPF5_err, saturation_correction):
     
 def makecurves(events_list = events_list,
                radius = radius,
+               detection_method = detection_method,
                threshold = threshold,
                how_many = how_many,
                bwidth = bwidth,
@@ -390,12 +391,127 @@ def makecurves(events_list = events_list,
                sky_radius = sky_radius,
                x_bg = x_bg,
                y_bg = y_bg,
-               detection_method = detection_method,
                aperture_correction = aperture_correction,
                saturation_correction = saturation_correction,
                whole_figure_resolution = whole_figure_resolution,
                sub_fig_size = sub_fig_size, 
                fontsize = fontsize):
+
+    """Automatically detect sources amd create light curves.
+
+    Parameters
+    ----------
+    events_list : file path
+        The name of the events list FITS file.
+                       
+    radius : float, optional
+        The source aperture radius in pixels. 
+        This parameter has a default value of 6.
+        
+    detection_method : {'daofind', 'kdtree'}, optional
+        The parameter to choose between available detection methods. 
+        
+        * ``'daofind'``: To use the DAOFIND algorithm. This is the default method.
+        * ``'kdtree'``: Source detection method based on a k-d tree implementation. 
+        
+    threshold : float, optional
+        The threshold parameter associated with the ``'daofind'`` method. 
+        The default value is 4.
+        
+    how_many : int, optional
+        The limit for the number of sources to be detected using 
+        the ``'kdtree'`` method. 
+        The default value is 4. 
+        
+    bwidth : float, optional
+        Time bin width in seconds. 
+        the default value is 50.   
+        
+    framecount_per_sec : float, optional
+        The framerate of the observation, with a default value of 28.7185
+        frames per second for 512 x 512 window mode. 
+        The most accurate way to get the framerate would be to take the value 
+        of (``1 / INT_TIME``). 
+        ``INT_TIME`` value can be found from the corresponding image header. 
+        Approximate values of framerate for different window modes of UVIT 
+        are given in the table below.
+
+        +---------------+---------------------+
+        | window mode   | frames per second   |
+        +===============+=====================+
+        | 512 x 512     | 28.7                |
+        +---------------+---------------------+
+        | 350 x 350     | 61                  |
+        +---------------+---------------------+
+        | 300 x 300     | 82                  |
+        +---------------+---------------------+
+        | 250 x 250     | 115                 |
+        +---------------+---------------------+
+        | 200 x 200     | 180                 |
+        +---------------+---------------------+
+        | 150 x 150     | 300                 |
+        +---------------+---------------------+
+        | 100 x 100     | 640                 |
+        +---------------+---------------------+ 
+
+    background : {'auto', 'manual', None}, optional
+        The parameter affects how the background count-rate estimation is done. 
+        
+        * ``'auto'``: Automatic estimation of the background count-rate.
+        * ``'manual'``: To manually specify a background region using **x_bg** and **y_bg** parameters.
+        * ``None``: No background estimation is carried out. This is the default method.
+     
+    sky_radius: float, optional
+        The background aperture radius in pixels. 
+        The default value is 12.
+        
+    x_bg : float, optional
+        The X-coordinate of the background region. 
+        
+    y_bg : float, optional
+        The Y-coordinate of the background region. 
+        
+    aperture_correction : {'fuv', 'nuv', None}, optional
+        The parameter affects how the aperture correction is done. 
+        
+        * ``'fuv'``: Aperture correction for the FUV channel is applied. 
+        * ``'nuv'``: Aperture correction for the NUV channel is applied.
+        * ``None``: No aperture correction is applied. This is the default method.
+        
+    saturation_correction : bool, optional
+        If `True`, saturation correction is applied. 
+        The default value is `False`. 
+
+
+    Note
+    ---- 
+    It is essential to set the correct value of the framerate. 
+    Most UVIT observations are carried out in 512 x 512 window mode.
+        
+    Example
+    --------
+    >>> import curvit
+    >>> curvit.makecurves(events_list = 'AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.fits.gz',
+    ...                   threshold = 5)
+    
+    :: 
+    
+        Detected source coordinates saved in file:
+        * sources_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.coo
+        Detected sources are plotted in the image:
+        * sources_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
+
+        ---------------------- light curves ----------------------
+        * makecurves_3136.64_3651.08_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
+        * makecurves_2530.02_1442.18_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
+        * makecurves_2912.31_3657.17_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
+        ...
+        ...
+
+        Done!
+
+    """
+
 
     time, fx, fy, photons = read_columns(events_list)
     weights = photons / framecount_per_sec
@@ -433,7 +549,7 @@ def makecurves(events_list = events_list,
     # To automatically choose background region.
     plt.figure(figsize = (10.5, 10))
     if background == 'auto':
-        lowres_counts, bg_CPS, bg_CPS_e = auto_bg(fx, fy, time, photons, 
+        lowres_counts, bg_CPS, bg_CPS_e = auto_bg(fx, fy, time, photons, radius,
                                                   framecount_per_sec, sky_radius)
        
     # To create a quick look figure marking sources and background.
@@ -598,19 +714,108 @@ def curve(events_list = events_list,
           fontsize = fontsize):
           
           
-    """
-    Create light curve for a source.
+    """Create light curve for a source.
 
     Parameters
     ----------
     events_list : file path
-        Name of the events list FITS file
-    xp : float
-        X-coordinate of the source
-    yp : float
-        Y-coordinate of the source        
- 
+        The name of the events list FITS file.
         
+    xp : float
+        The X-coordinate of the source.
+        
+    yp : float
+        The Y-coordinate of the source. 
+               
+    radius : float, optional
+        The source aperture radius in pixels. 
+        This parameter has a default value of 6.
+        
+    bwidth : float, optional
+        Time bin width in seconds. 
+        the default value is 50.   
+        
+    framecount_per_sec : float, optional
+        The framerate of the observation, with a default value of 28.7185
+        frames per second for 512 x 512 window mode. 
+        The most accurate way to get the framerate would be to take the value 
+        of (``1 / INT_TIME``). 
+        ``INT_TIME`` value can be found from the corresponding image header. 
+        Approximate values of framerate for different window modes of UVIT 
+        are given in the table below.
+
+        +---------------+---------------------+
+        | window mode   | frames per second   |
+        +===============+=====================+
+        | 512 x 512     | 28.7                |
+        +---------------+---------------------+
+        | 350 x 350     | 61                  |
+        +---------------+---------------------+
+        | 300 x 300     | 82                  |
+        +---------------+---------------------+
+        | 250 x 250     | 115                 |
+        +---------------+---------------------+
+        | 200 x 200     | 180                 |
+        +---------------+---------------------+
+        | 150 x 150     | 300                 |
+        +---------------+---------------------+
+        | 100 x 100     | 640                 |
+        +---------------+---------------------+ 
+
+    background : {'auto', 'manual', None}, optional
+        The parameter affects how the background count-rate estimation is done. 
+        
+        * ``'auto'``: Automatic estimation of the background count-rate.
+        * ``'manual'``: To manually specify a background region using **x_bg** and **y_bg** parameters.
+        * ``None``: No background estimation is carried out. This is the default method.
+     
+    sky_radius: float, optional
+        The background aperture radius in pixels. 
+        The default value is 12.
+        
+    x_bg : float, optional
+        The X-coordinate of the background region. 
+        
+    y_bg : float, optional
+        The Y-coordinate of the background region. 
+        
+    aperture_correction : {'fuv', 'nuv', None}, optional
+        The parameter affects how the aperture correction is done. 
+        
+        * ``'fuv'``: Aperture correction for the FUV channel is applied. 
+        * ``'nuv'``: Aperture correction for the NUV channel is applied.
+        * ``None``: No aperture correction is applied. This is the default method.
+        
+    saturation_correction : bool, optional
+        If `True`, saturation correction is applied. 
+        The default value is `False`. 
+
+
+    Note
+    ---- 
+    It is essential to set the correct value of the framerate. 
+    Most UVIT observations are carried out in 512 x 512 window mode.
+        
+    Example
+    --------
+    >>> curvit.curve(events_list = 'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits.gz', 
+    ...              xp = 2636.71, yp = 907.91,
+    ...              radius = 15,
+    ...              bwidth = 50, 
+    ...              background = 'auto')
+    
+    ::
+    
+        The estimated background CPS = 0.02155 +/-0.00425
+
+        -------------------------- curve --------------------------
+        source: source_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+                source_zoomed_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+        data: curve_2636.71_907.91_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.dat
+        plot: curve_2636.71_907.91_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+
+        Done!
+    
     """
 
     time, fx, fy, photons = read_columns(events_list)
@@ -637,7 +842,7 @@ def curve(events_list = events_list,
     # To automatically choose background region.
     plt.figure(figsize = (10.5, 10))
     if background == 'auto':
-        lowres_counts, bg_CPS, bg_CPS_e = auto_bg(fx, fy, time, photons, 
+        lowres_counts, bg_CPS, bg_CPS_e = auto_bg(fx, fy, time, photons, radius,
                                                   framecount_per_sec, sky_radius)
         
     # To create a quick look figure marking sources and background.
@@ -796,6 +1001,76 @@ def process_ccdlab(output = None,
                    XY_fractions = None, 
                    flat_list = None, 
                    framecount_per_sec = framecount_per_sec):
+                   
+    """Generate a Curvit compatible events list from CCDLAB files.
+
+    Parameters
+    ----------
+    output : file path
+        The name of the output events list FITS file.
+        
+    time_list : file path
+        The name of the CCDLAB time list FITS file
+        
+    XY_integers : file path
+        The name of the CCDLAB XY integers FITS file
+        
+    XY_fractions : file path
+        The name of the CCDLAB XY fractions FITS file
+        
+    flat_list : file path
+        The name of the CCDLAB flat list FITS file
+        
+    framecount_per_sec : float, optional
+        The framerate of the observation, with a default value of 28.7185
+        frames per second for 512 x 512 window mode. 
+        The most accurate way to get the framerate would be to take the value 
+        of (``1 / INT_TIME``). 
+        ``INT_TIME`` value can be found from the corresponding image header. 
+        Approximate values of framerate for different window modes of UVIT 
+        are given in the table below.
+
+        +---------------+---------------------+
+        | window mode   | frames per second   |
+        +===============+=====================+
+        | 512 x 512     | 28.7                |
+        +---------------+---------------------+
+        | 350 x 350     | 61                  |
+        +---------------+---------------------+
+        | 300 x 300     | 82                  |
+        +---------------+---------------------+
+        | 250 x 250     | 115                 |
+        +---------------+---------------------+
+        | 200 x 200     | 180                 |
+        +---------------+---------------------+
+        | 150 x 150     | 300                 |
+        +---------------+---------------------+
+        | 100 x 100     | 640                 |
+        +---------------+---------------------+ 
+        
+
+    Note
+    ---- 
+    It is essential to set the correct value of the framerate. 
+    Most UVIT observations are carried out in 512 x 512 window mode.
+            
+    Warning
+    -------
+    This function is new; please report if you find any bugs.
+        
+    Example
+    --------
+    >>> import curvit
+    >>> process_ccdlab(output = 'output_events_list.fits',
+    ...                time_list = 'sample_TimeList.fits', 
+    ...                XY_integers = 'sample_XYInts_List.fits',
+    ...                XY_fractions = 'sample_XYFrac_List.fits',
+    ...                flat_list = 'sample_FlatList.fits',
+    ...                framecount_per_sec = 28.7185)
+    
+    The above script will generate a FITS table called ``output_events_list.fits``.
+    You may then use it as input to ``curve`` or ``makecurves``. 
+    """
     
     time = fits.open(time_list)[0].data / 1000
     XYFrac = fits.open(XY_fractions)[0].data
@@ -818,16 +1093,40 @@ def process_ccdlab(output = None,
 def makefits(events_list = events_list, 
              framecount_per_sec = framecount_per_sec):
 
-    """
-    Create a quick look FITS image from the input events list.
+    """Create a quick look FITS image from the input events list.
 
     Parameters
     ----------
     events_list : file path
-        Name of the events list FITS file.
-    framecount_per_sec: float, optional
-        Framerate of the observation. 
+        The name of the events list FITS file.
         
+    framecount_per_sec : float, optional
+        The framerate of the observation, with a default value of 28.7185
+        frames per second for 512 x 512 window mode. 
+        The most accurate way to get the framerate would be to take the value 
+        of (``1 / INT_TIME``). 
+        ``INT_TIME`` value can be found from the corresponding image header. 
+        Approximate values of framerate for different window modes of UVIT 
+        are given in the table below.
+
+        +---------------+---------------------+
+        | window mode   | frames per second   |
+        +===============+=====================+
+        | 512 x 512     | 28.7                |
+        +---------------+---------------------+
+        | 350 x 350     | 61                  |
+        +---------------+---------------------+
+        | 300 x 300     | 82                  |
+        +---------------+---------------------+
+        | 250 x 250     | 115                 |
+        +---------------+---------------------+
+        | 200 x 200     | 180                 |
+        +---------------+---------------------+
+        | 150 x 150     | 300                 |
+        +---------------+---------------------+
+        | 100 x 100     | 640                 |
+        +---------------+---------------------+ 
+
     Warning
     -------
     If you plan to use the generated FITS image for science,
@@ -840,7 +1139,6 @@ def makefits(events_list = events_list,
     
     The above script will generate a FITS image called ``test_events_list_quick_look.fits``.
     You may open it in software such as DS9 to view the image. 
-        
     """
 
     time, fx, fy, photons = read_columns(events_list)

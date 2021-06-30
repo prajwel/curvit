@@ -15,10 +15,7 @@ familiarized with Curvit and creating light curves using UVIT data.
     
 .. caution::
     The software is under `active development <https://github.com/prajwel/curvit>`_. 
-    For new features and bug fixes, always refer to the updated documentation 
-    and check for upgrades using::
-    
-        pip install curvit --upgrade
+    For new features and bug fixes, please check :ref:`changelog`. 
 
 .. toctree::
     :maxdepth: 1

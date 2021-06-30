@@ -2,11 +2,13 @@
 Changelog
 =========
 
-1.3.0
+1.3.1
 -----
 
 .. important::
-    If you have an older version, please upgrade. 
+    If you have an older version, please upgrade::
+    
+        pip install curvit --upgrade
 
 Bugfix for background estimation. 
 In earlier versions, scaling of the background counts to the source aperture 

@@ -112,7 +112,7 @@ only in the **instrument coordinate system**.
 
     >>> import curvit
     >>> curvit.makecurves(events_list = 'AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.fits.gz', 
-                          threshold = 5)
+    ...                   threshold = 5)
 
 ::
 
@@ -149,14 +149,14 @@ to create light curves.
 .. code:: python
 
     >>> curvit.curve(events_list = 'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits.gz', 
-                     xp = 2636.71, yp = 907.91,
-                     radius = 15,
-                     bwidth = 50, 
-                     background = 'auto')
+    ...              xp = 2636.71, yp = 907.91,
+    ...              radius = 15,
+    ...              bwidth = 50, 
+    ...              background = 'auto')
 
 ::
 
-    The estimated background CPS = 0.00352 +/-0.00069
+    The estimated background CPS = 0.02113 +/-0.00421
 
     -------------------------- curve --------------------------
     source: source_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
@@ -188,7 +188,7 @@ Parameters common to both ``makecurves`` and ``curve``
 -  **sky_radius** - The radius of the background aperture in pixels.
    The default value is ``12``.
 
--  **bwidth** - Time bin width in seconds. the default value is ``50``.
+-  **bwidth** - Time bin width in seconds. The default value is ``50``.
 
 -  **framecount_per_sec** - Framerate, with a default value of
    ``28.7185`` frames per second for 512 x 512 window mode. The most
