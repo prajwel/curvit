@@ -126,7 +126,9 @@ def read_columns(events_list):
     fx = f[1].data['Fx']
     fy = f[1].data['Fy']
     photons = f[1].data['EFFECTIVE_NUM_PHOTONS']
+    bad_flag = f[1].data['BAD FLAG']
     mask = photons > 0 
+    mask = np.logical_and(mask, bad_flag)
     time = time[mask]
     fx = fx[mask]
     fy = fy[mask]
@@ -1084,8 +1086,9 @@ def process_ccdlab(output = None,
     col2 = fits.Column(name = 'Fx', format = 'D', array = fx)
     col3 = fits.Column(name = 'Fy', format = 'D', array = fy)
     col4 = fits.Column(name = 'EFFECTIVE_NUM_PHOTONS', format = 'D', array = photons)
+    col5 = fits.Column(name = 'BAD FLAG', format = 'D', array = np.ones(len(time)))
 
-    cols = fits.ColDefs([col1, col2, col3, col4])
+    cols = fits.ColDefs([col1, col2, col3, col4, col5])
     tbhdu = fits.BinTableHDU.from_columns(cols)
     tbhdu.writeto(output, overwrite = True)   
     return   
@@ -1147,4 +1150,16 @@ def makefits(events_list = events_list,
     ndarray, yedges, xedges = np.histogram2d(fy, fx, bins = (bins, bins), weights = weights)  
     fits_name = events_list.replace('.fits', '_quick_look.fits')
     hdu = fits.PrimaryHDU(data = ndarray)
+    try:
+        hdu.header['RA_PNT'] = fits.open(events_list)[1].header['RA_PNT_RADEC']
+        hdu.header['DEC_PNT'] = fits.open(events_list)[1].header['DEC_PNT_RADEC']
+    except KeyError:
+        pass
+    
+    try:
+        hdu.header['RA_PNT'] = fits.open(events_list)[0].header['RA_PNT']
+        hdu.header['DEC_PNT'] = fits.open(events_list)[0].header['DEC_PNT']
+    except KeyError:
+        pass
+        
     hdu.writeto(fits_name, overwrite = True)        
