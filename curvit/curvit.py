@@ -1193,19 +1193,17 @@ def rebin(arr, bin_factor):
     binned_arr = arr.reshape(shape).mean(-1).mean(1)
     return binned_arr
 
-def new_detect_sources_daofind(fx, fy, photons, threshold, framecount_per_sec):
+def get_image_data(fx, fy, photons, framecount_per_sec):
     weights = photons / framecount_per_sec
     bins = np.arange(0, 4801)
-    data, yedges, xedges = np.histogram2d(fy, fx, bins = (bins, bins), weights = weights)  
-    
+    data, _, _ = np.histogram2d(fy, fx, bins = (bins, bins), weights = weights)
+    return data
+
+def daofind_on_image_data(data, threshold):
     kernel = Gaussian2DKernel(x_stddev=1.5)
-    zoom_order = 2
-    if zoom_order == 1:
-        zoomed_data = convolve(data, kernel)
-    else:
-        binned_data = rebin(data, 2)
-        smoothed_data = convolve(binned_data, kernel)
-        zoomed_data = zoom(smoothed_data, zoom = 2, order = 0)
+    binned_data = rebin(data, 2)
+    smoothed_data = convolve(binned_data, kernel)
+    zoomed_data = zoom(smoothed_data, zoom = 2, order = 0)
     
     sigma_clip = SigmaClip(sigma=3.)
     bkg_estimator = MedianBackground()
@@ -1220,6 +1218,11 @@ def new_detect_sources_daofind(fx, fy, photons, threshold, framecount_per_sec):
     
     sources.sort('mag')
     uA = np.array([sources['xcentroid'].data, sources['ycentroid'].data]).T
+    return uA 
+
+def new_detect_sources_daofind(fx, fy, photons, threshold, framecount_per_sec):
+    data = get_image_data(fx, fy, photons, framecount_per_sec)
+    uA = daofind_on_image_data(data, threshold)
     return uA
 
 def combine_events_lists(events_lists_paths = None, 
