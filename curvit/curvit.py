@@ -122,7 +122,7 @@ nuv_ratio_function = interp1d(radius_pixels, nuv_ratio, kind = 'cubic')
 
 # The parameters below are for combining events lists.
 
-'''single_star option isonly useful when there is only one star in
+'''single_star option is useful only when there is only one star in
 the field and no rotation between frames.'''
 shift_algorithm = 'multiple_star' # 'single_star' or 'multiple_star'.
 
@@ -1231,6 +1231,30 @@ def combine_events_lists(events_lists_paths = None,
                          shift_algorithm = shift_algorithm, 
                          min_exptime = min_exptime,
                          framecount_per_sec = framecount_per_sec):
+                         
+    """Align and combine the events lists from different orbits.
+
+    Parameters
+    ----------
+    events_lists_paths : list
+        The list of events list FITS file paths to be aligned and combined.
+        
+    shift_algorithm : {'single_star', 'multiple_star'}, optional
+        The parameter to choose between available aligning methods. 
+        
+        * ``'single_star'``: To use a single star for aligning orbits. 
+            Single_star option is useful only when there is only one star 
+            in the field and no rotation between frames.
+        * ``'multiple_star'``: To use multiple stars for aligning orbits. 
+            This is recommended and the default method.
+                               
+    min_exptime : float, optional
+        Orbits having exposure time below this limit will be ignored. 
+        the default value is 100 seconds. 
+                
+    framecount_per_sec : float, optional
+        The framerate of the observation.
+    """
     
     print('\nWorking on the following events lists:')
     print(*events_lists_paths, sep='\n')
@@ -1445,7 +1469,7 @@ def combine_events_lists(events_lists_paths = None,
     
     print("\nDone!\n")
     
-def UV_image_astrometry(UV_image = None, threshold = 3, API_key = AstrometryNet_API_key):
+def image_astrometry(UV_image = None, threshold = 3, API_key = AstrometryNet_API_key):
     hdu = fits.open(UV_image)
     sources = daofind_on_image_data(hdu[0].data, threshold)
     sources = sources + 1
