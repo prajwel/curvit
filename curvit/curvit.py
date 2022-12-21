@@ -1180,6 +1180,11 @@ def makefits(events_list = events_list,
     except KeyError:
         pass
         
+    try:
+        hdu.header['EXPTIME'] = fits.open(events_list)[0].header['EXPTIME']
+    except KeyError:
+        pass
+
     hdu.writeto(fits_name, overwrite = True)      
     
 def rebin(arr, bin_factor):
