@@ -28,17 +28,20 @@ import sys
 import ntpath
 import random
 import numpy as np
+import astroalign as aa
 import matplotlib.pyplot as plt
 
 from glob import glob
 from astropy.io import fits
 from collections import Counter
+from scipy.ndimage import zoom
 from scipy.spatial import KDTree
 from scipy.interpolate import interp1d
 from matplotlib.colors import LogNorm
 from photutils import DAOStarFinder, CircularAperture
+from photutils.background import Background2D, MedianBackground
 from astropy.convolution import Gaussian2DKernel, convolve
-from astropy.stats import sigma_clipped_stats, gaussian_fwhm_to_sigma, sigma_clip
+from astropy.stats import sigma_clipped_stats, gaussian_fwhm_to_sigma, sigma_clip, SigmaClip
 
  
 #######################################################################
@@ -116,6 +119,21 @@ nuv_ratio = nuv_energy_percentage / 100.
 fuv_ratio = fuv_energy_percentage / 100.
 fuv_ratio_function = interp1d(radius_pixels, fuv_ratio, kind = 'cubic')
 nuv_ratio_function = interp1d(radius_pixels, nuv_ratio, kind = 'cubic')
+
+# The parameters below are for combining events lists.
+
+'''single_star option isonly useful when there is only one star in
+the field and no rotation between frames.'''
+shift_algorithm = 'multiple_star' # 'single_star' or 'multiple_star'.
+
+min_exptime = 100 # will ignore orbits with exptimes below limit.
+
+'''Astroalign settings. Change only if you know what you are 
+doing.'''
+aa.NUM_NEAREST_NEIGHBORS = 7
+aa.MIN_MATCHES_FRACTION = 0.1
+aa.PIXEL_TOL = 2
+
 #######################################################################
 
 
@@ -1162,4 +1180,246 @@ def makefits(events_list = events_list,
     except KeyError:
         pass
         
-    hdu.writeto(fits_name, overwrite = True)        
+    hdu.writeto(fits_name, overwrite = True)      
+    
+def rebin(arr, bin_factor):
+    shape = (int(arr.shape[0] / bin_factor), bin_factor,
+             int(arr.shape[1] / bin_factor), bin_factor)
+    binned_arr = arr.reshape(shape).mean(-1).mean(1)
+    return binned_arr
+
+def new_detect_sources_daofind(fx, fy, photons, threshold, framecount_per_sec):
+    weights = photons / framecount_per_sec
+    bins = np.arange(0, 4801)
+    data, yedges, xedges = np.histogram2d(fy, fx, bins = (bins, bins), weights = weights)  
+    
+    kernel = Gaussian2DKernel(x_stddev=1.5)
+    zoom_order = 2
+    if zoom_order == 1:
+        zoomed_data = convolve(data, kernel)
+    else:
+        binned_data = rebin(data, 2)
+        smoothed_data = convolve(binned_data, kernel)
+        zoomed_data = zoom(smoothed_data, zoom = 2, order = 0)
+    
+    sigma_clip = SigmaClip(sigma=3.)
+    bkg_estimator = MedianBackground()
+    bkg = Background2D(zoomed_data, (50, 50), filter_size=(3, 3),
+                       sigma_clip=sigma_clip, bkg_estimator=bkg_estimator)
+
+    daofind = DAOStarFinder(fwhm = 4, 
+                            threshold = threshold * bkg.background_rms_median, 
+                            exclude_border = True)
+    
+    sources = daofind(zoomed_data - bkg.background)    
+    
+    sources.sort('mag')
+    uA = np.array([sources['xcentroid'].data, sources['ycentroid'].data]).T
+    return uA
+
+def combine_events_lists(events_lists_paths = None, 
+                         shift_algorithm = shift_algorithm, 
+                         min_exptime = min_exptime,
+                         framecount_per_sec = framecount_per_sec):
+    
+    print('\nWorking on the following events lists:')
+    print(*events_lists_paths, sep='\n')
+    print('')
+
+    exptimes = []
+    detected_sources = []
+    select_events_lists_paths = []    
+    for path in events_lists_paths:
+        time, fx, fy, photons = read_columns(path)
+        nbin_check = (time.max() - time.min()) / min_exptime
+        if nbin_check < 1:
+            print('\n{} ignored.\nEvents list contain little data.'.format(path))
+            continue
+            
+        uA = []    
+        if shift_algorithm == 'single_star':
+            number_of_sources = 2
+            i = 6
+            while len(uA) <= number_of_sources:
+                uA = new_detect_sources_daofind(fx, fy, photons, i, framecount_per_sec)
+                i = i - 0.5
+                if i <= 1:
+                    print('If you see this, please contact Curvit developer.')
+                    break
+        else:
+            number_of_sources = 3
+            i = 5
+            while len(uA) <= number_of_sources:
+                uA = new_detect_sources_daofind(fx, fy, photons, i, framecount_per_sec)
+                if len(uA) > 200:
+                    uA = new_detect_sources_daofind(fx, fy, photons, i + 5, framecount_per_sec)
+                i = i - 0.5
+                if i <= 1:
+                    print('If you see this, please contact Curvit developer.')
+                    break  
+
+        print('{} sources detected in {}'.format(len(uA), path))
+
+        exptimes.append(time.max() - time.min())
+        detected_sources.append(uA)
+        select_events_lists_paths.append(path)
+        
+    print('')
+      
+    framerate_from_header = []
+
+    if shift_algorithm == 'multiple_star':    
+        _, eventslist_name = ntpath.split(select_events_lists_paths[0])
+        eventslist_name = modify_string(eventslist_name)
+        combined_eventslist_name = eventslist_name + '_all_orbits.fits'
+        reference = detected_sources[np.argmax(exptimes)]
+        i = 0
+        for elist, path in zip(detected_sources, select_events_lists_paths):
+            try:
+                transf, (source_list, target_list) = aa.find_transform(elist, reference, max_control_points = 100)  
+
+                img_path = ntpath.split(path)[0] + '/*I_l2img*'
+                if len(glob(img_path)) == 1:
+                    img_hdu = fits.open(glob(img_path)[0])
+                    framerate_from_header.append(1 / img_hdu[0].header['INT_TIME'])
+                    RA_pointing = img_hdu[0].header['RA_PNT']
+                    DEC_pointing = img_hdu[0].header['DEC_PNT']
+                else:
+                    print('Requires exactly one file matching *I_l2img* in directory {}!'.format(ntpath.split(path)[0]))
+                    sys.exit()
+
+                if i == 0:
+                    hdu_base = fits.open(path)
+
+                    photons = hdu_base[1].data['EFFECTIVE_NUM_PHOTONS']
+                    mask = photons > 0 
+
+                    nrows_base = hdu_base[1].data[mask].shape[0]
+
+                    X_and_Y = np.array([hdu_base[1].data['Fx'], hdu_base[1].data['Fy']]).T
+                    X_centroid, Y_centroid = aa.matrix_transform(X_and_Y, transf.params).T        
+
+                    hdu_base[1].data['Fx'] = X_centroid
+                    hdu_base[1].data['Fy'] = Y_centroid
+
+                    hdu = fits.BinTableHDU.from_columns(hdu_base[1].columns, nrows = nrows_base, fill = True)
+                    for colname in hdu_base[1].columns.names:
+                        hdu.data[colname][:nrows_base] = hdu_base[1].data[colname][mask]
+
+                    hduP = fits.PrimaryHDU()
+                    hduP.header = hdu_base[0].header
+                    hdu.name = hdu_base[1].name
+                    hdu_base = fits.HDUList([hduP, hdu])
+                    hdu_base.writeto(combined_eventslist_name, overwrite = True)
+
+                else:
+                    hdu_add = fits.open(path)
+                    hdu_base = fits.open(combined_eventslist_name)
+
+                    photons = hdu_add[1].data['EFFECTIVE_NUM_PHOTONS']
+                    mask = photons > 0 
+
+                    nrows_base = hdu_base[1].data.shape[0]
+                    nrows_add = hdu_add[1].data[mask].shape[0]
+                    nrows = nrows_base + nrows_add
+
+                    X_and_Y = np.array([hdu_add[1].data['Fx'], hdu_add[1].data['Fy']]).T
+                    X_centroid, Y_centroid = aa.matrix_transform(X_and_Y, transf.params).T 
+
+                    hdu_add[1].data['Fx'] = X_centroid
+                    hdu_add[1].data['Fy'] = Y_centroid                
+
+                    hdu = fits.BinTableHDU.from_columns(hdu_base[1].columns, nrows = nrows, fill = True)
+                    for colname in hdu_base[1].columns.names:
+                        hdu.data[colname][:nrows_base] = hdu_base[1].data[colname]
+                        hdu.data[colname][nrows_base:] = hdu_add[1].data[colname][mask]
+
+                    hdu.name = hdu_base[1].name
+                    hdu_base = fits.HDUList([hduP, hdu])
+                    hdu_base.writeto(combined_eventslist_name, overwrite = True)
+
+                i = i + 1
+                print('coordinate matching successful for {}'.format(path))
+
+            except aa.MaxIterError:
+                print('coordinate matching failed for {}'.format(path))
+
+
+    if shift_algorithm == 'single_star':
+        new_detected_sources = np.array([d[0] for d in detected_sources])
+        shifts = new_detected_sources - new_detected_sources[0]
+
+        _, eventslist_name = ntpath.split(select_events_lists_paths[0])
+        eventslist_name = modify_string(eventslist_name)
+        combined_eventslist_name = eventslist_name + '_all_orbits.fits'
+        i = 0
+        for shift, path in zip(shifts, select_events_lists_paths):
+
+            img_path = ntpath.split(path)[0] + '/*I_l2img*'
+            if len(glob(img_path)) == 1:
+                img_hdu = fits.open(glob(img_path)[0])
+                framerate_from_header.append(1 / img_hdu[0].header['INT_TIME'])
+                RA_pointing = img_hdu[0].header['RA_PNT']
+                DEC_pointing = img_hdu[0].header['DEC_PNT']
+            else:
+                print('Requires exactly one file matching *I_l2img* in directory {}!'.format(ntpath.split(path)[0]))
+                sys.exit()
+
+            if i == 0:
+                hdu_base = fits.open(path)
+
+                photons = hdu_base[1].data['EFFECTIVE_NUM_PHOTONS']
+                mask = photons > 0 
+
+                nrows_base = hdu_base[1].data[mask].shape[0]
+
+                hdu = fits.BinTableHDU.from_columns(hdu_base[1].columns, nrows = nrows_base, fill = True)
+                for colname in hdu_base[1].columns.names:
+                    hdu.data[colname][:nrows_base] = hdu_base[1].data[colname][mask]
+
+                hduP = fits.PrimaryHDU()
+                hduP.header = hdu_base[0].header
+                hdu.name = hdu_base[1].name
+                hdu_base = fits.HDUList([hduP, hdu])
+                hdu_base.writeto(combined_eventslist_name, overwrite = True)
+
+
+            else:
+                hdu_add = fits.open(path)
+                hdu_base = fits.open(combined_eventslist_name)
+
+
+                photons = hdu_add[1].data['EFFECTIVE_NUM_PHOTONS']
+                mask = photons > 0 
+
+                nrows_base = hdu_base[1].data.shape[0]
+                nrows_add = hdu_add[1].data[mask].shape[0]
+                nrows = nrows_base + nrows_add
+
+                hdu_add[1].data['Fx'] = hdu_add[1].data['Fx'] - shift[0]
+                hdu_add[1].data['Fy'] = hdu_add[1].data['Fy'] - shift[1]
+
+                hdu = fits.BinTableHDU.from_columns(hdu_base[1].columns, nrows = nrows, fill = True)
+                for colname in hdu_base[1].columns.names:
+                    hdu.data[colname][:nrows_base] = hdu_base[1].data[colname]
+                    hdu.data[colname][nrows_base:] = hdu_add[1].data[colname][mask]
+
+                hdu.name = hdu_base[1].name
+                hdu_base = fits.HDUList([hduP, hdu])
+                hdu_base.writeto(combined_eventslist_name, overwrite = True)
+
+            i = i + 1
+
+    AVGFRMRT = np.mean(framerate_from_header)
+    STDFRMRT = np.std(framerate_from_header)
+
+    print('\nAverage frame rate = {:.6f}'.format(AVGFRMRT))
+    print('frame rate standard deviation = {:.6f}'.format(STDFRMRT))
+
+    hdu_base = fits.open(combined_eventslist_name, mode = 'update')
+    hdu_base[0].header['AVGFRMRT'] = (AVGFRMRT, 'Added by events lists combine software')
+    hdu_base[0].header['STDFRMRT'] = (STDFRMRT, 'Added by events lists combine software')
+    hdu_base[0].header['RA_PNT'] = RA_pointing
+    hdu_base[0].header['DEC_PNT'] = DEC_pointing
+    hdu_base.flush()
+    print("\nDone!\n")  

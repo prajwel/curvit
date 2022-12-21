@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="curvit", 
-    version="1.3.3",
+    version="1.4.0",
     author="Prajwel Joseph",
     author_email="prajwel.joseph@gmail.com",
     description="light curves from UVIT data",
@@ -23,5 +23,6 @@ setuptools.setup(
                       'matplotlib',
                       'astropy',
                       'photutils',
-                      'scipy'],
+                      'scipy',
+                      'astroalign'],
 )
