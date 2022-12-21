@@ -6,6 +6,12 @@ Changelog
     If you have an older version, please upgrade::
     
         pip install curvit --upgrade
+        
+1.4.0
+-----
+        
+New function, `combine_events_lists` to combine events lists from 
+multiple orbits/episodes and create a single combined events list. 
 
 1.3.3
 -----

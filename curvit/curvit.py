@@ -1421,5 +1421,16 @@ def combine_events_lists(events_lists_paths = None,
     hdu_base[0].header['STDFRMRT'] = (STDFRMRT, 'Added by events lists combine software')
     hdu_base[0].header['RA_PNT'] = RA_pointing
     hdu_base[0].header['DEC_PNT'] = DEC_pointing
+    time = hdu_base[1].data['MJD_L2']
+    photons = hdu_base[1].data['EFFECTIVE_NUM_PHOTONS']
+    bad_flag = hdu_base[1].data['BAD FLAG']
+    mask = photons > 0 
+    mask = np.logical_and(mask, bad_flag)
+    time = time[mask]
+    unique_frames = len(np.unique(time))
+    exp_time = unique_frames / AVGFRMRT 
+    print('Total combined exposure time = {:.4f} seconds'.format(exp_time))
+    hdu_base[0].header['EXPTIME'] = exp_time
     hdu_base.flush()
-    print("\nDone!\n")  
+    
+    print("\nDone!\n")
