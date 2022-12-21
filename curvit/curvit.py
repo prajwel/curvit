@@ -32,7 +32,6 @@ import astroalign as aa
 import matplotlib.pyplot as plt
 
 from glob import glob
-from astropy.io import fits
 from collections import Counter
 from scipy.ndimage import zoom
 from scipy.spatial import KDTree
@@ -40,9 +39,10 @@ from scipy.interpolate import interp1d
 from matplotlib.colors import LogNorm
 from photutils import DAOStarFinder, CircularAperture
 from photutils.background import Background2D, MedianBackground
+from astropy.io import fits
 from astropy.convolution import Gaussian2DKernel, convolve
 from astropy.stats import sigma_clipped_stats, gaussian_fwhm_to_sigma, sigma_clip, SigmaClip
-
+from astroquery.astrometry_net import AstrometryNet
  
 #######################################################################
 # Initial set of parameters.
@@ -134,6 +134,8 @@ aa.NUM_NEAREST_NEIGHBORS = 7
 aa.MIN_MATCHES_FRACTION = 0.1
 aa.PIXEL_TOL = 2
 
+# For Astrometry.
+AstrometryNet_API_key = 'ujmrvwqqyelxmzcj'  
 #######################################################################
 
 
@@ -1442,3 +1444,71 @@ def combine_events_lists(events_lists_paths = None,
     hdu_base.flush()
     
     print("\nDone!\n")
+    
+def UV_image_astrometry(UV_image = None, threshold = 3, API_key = AstrometryNet_API_key):
+    hdu = fits.open(UV_image)
+    sources = daofind_on_image_data(hdu[0].data, threshold)
+    sources = sources + 1
+    print('Number of detected sources = {}'.format(len(sources)))
+    ra_pnt = hdu[0].header['RA_PNT']
+    dec_pnt = hdu[0].header['DEC_PNT']
+    
+    ast = AstrometryNet()
+    ast.api_key = API_key
+
+    try:
+        wcs_header = ast.solve_from_source_list(sources[:, 0], sources[:, 1],
+                                    hdu[0].header['NAXIS1'], hdu[0].header['NAXIS2'],
+                                    solve_timeout = 1200, 
+                                    center_ra = ra_pnt, 
+                                    center_dec = dec_pnt,
+                                    radius = 0.33,
+                                    crpix_center = True,
+                                    scale_type='ev',
+                                    scale_units = 'arcsecperpix',
+                                    scale_est = 0.41625,
+                                    scale_err = 10)
+    except TimeoutError:
+        print('\nTimed out!')
+
+    if wcs_header:
+        print('\nAstrometry.net solve success!')
+        
+        # For fixing the UVIT L2 pipeline image header.
+        try: 
+            hdu[0].header.remove('CTYPE1')
+            hdu[0].header.remove('CUNIT1') 
+            hdu[0].header.remove('CRPIX1') 
+            hdu[0].header.remove('CDELT1') 
+            hdu[0].header.remove('CRVAL1') 
+            hdu[0].header.remove('CTYPE2') 
+            hdu[0].header.remove('CUNIT2') 
+            hdu[0].header.remove('CRPIX2') 
+            hdu[0].header.remove('CDELT2') 
+            hdu[0].header.remove('CRVAL2') 
+            hdu[0].header.remove('CROTA2') 
+            hdu[0].header.remove('CROTA1')
+        except KeyError:
+            pass 
+
+        try: 
+            hdu[0].header.remove('CTYPE1')
+            hdu[0].header.remove('CUNIT1') 
+            hdu[0].header.remove('CRPIX1') 
+            hdu[0].header.remove('CDELT1') 
+            hdu[0].header.remove('CRVAL1') 
+            hdu[0].header.remove('CTYPE2') 
+            hdu[0].header.remove('CUNIT2') 
+            hdu[0].header.remove('CRPIX2') 
+            hdu[0].header.remove('CDELT2') 
+            hdu[0].header.remove('CRVAL2') 
+            hdu[0].header.remove('CROTA2') 
+            hdu[0].header.remove('CROTA1')
+        except KeyError:
+            pass 
+            
+        hdu[0].header.update(wcs_header)
+        hdu.writeto(UV_image, overwrite = True)
+        print('Image header updated with WCS.')
+    else:
+        print('\nAstrometry.net solve FAILED!!!\n')        

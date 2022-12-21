@@ -24,5 +24,6 @@ setuptools.setup(
                       'astropy',
                       'photutils',
                       'scipy',
-                      'astroalign'],
+                      'astroalign',
+                      'astroquery'],
 )
