@@ -8,3 +8,5 @@ numpy
 astropy
 scipy
 photutils
+astroalign
+astroquery
