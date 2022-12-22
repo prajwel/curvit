@@ -7,11 +7,17 @@ Changelog
     
         pip install curvit --upgrade
         
+1.5.0
+-----
+        
+:doc:`/api/image_astrometry` function to carry out 
+astrometry on a UVIT image using Astrometry.net.      
+        
 1.4.0
 -----
         
-New function, `combine_events_lists` to combine events lists from 
-multiple orbits/episodes and create a single combined events list. 
+:doc:`/api/combine_events_lists` function to combine events lists from 
+multiple orbits and create a single combined events list. 
 
 1.3.3
 -----

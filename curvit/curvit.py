@@ -1260,6 +1260,10 @@ def combine_events_lists(events_lists_paths = None,
     While combining events lists, do not mix data from ``RAS_VIS`` 
     and ``RAS_NUV``. In most cases, ``RAS_VIS`` data should be preferred. 
     
+    Note
+    ---- 
+    Please cite the Astroalign package if you are using this function.     
+    
     Example
     --------
     >>> import curvit
@@ -1482,6 +1486,37 @@ def combine_events_lists(events_lists_paths = None,
     print("\nDone!\n")
     
 def image_astrometry(UV_image = None, threshold = 3, API_key = AstrometryNet_API_key):
+
+    """Carry out astrometry on a UVIT image using Astrometry.net.
+
+    Parameters
+    ----------
+    UV_image : file path
+        The name of the UVIT FITS image.
+                               
+    threshold : float, optional
+        The threshold parameter associated with the source detection method. 
+        The default value is 3.
+                
+    API_key : string, optional
+        The Astrometry.net API key. Ideally, you should get your API key
+        from Astrometry.net and use it. 
+
+    Warning
+    -------
+    Astrometry should be successful on most fields. 
+    However, failures found during tests on some crowded fields. 
+    Please try changing the source detection threshold in such cases.      
+        
+    Note
+    ---- 
+    Please cite Astrometry.net if you are using this function.        
+        
+    Example
+    --------
+    >>> import curvit
+    >>> curvit.image_astrometry('test.fits')        
+    """    
     hdu = fits.open(UV_image)
     sources = daofind_on_image_data(hdu[0].data, threshold)
     sources = sources + 1
