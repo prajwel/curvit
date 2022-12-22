@@ -1110,13 +1110,13 @@ def process_ccdlab(output = None,
 
     cols = fits.ColDefs([col1, col2, col3, col4, col5])
     tbhdu = fits.BinTableHDU.from_columns(cols)
-    tbhdu.writeto(output, overwrite = True)   
-    return   
+    tbhdu.writeto(output, overwrite = True) 
+    print('The events list: {}'.format(output))  
 
 def makefits(events_list = events_list, 
              framecount_per_sec = framecount_per_sec):
 
-    """Create a quick look FITS image from the input events list.
+    """Create a FITS image from the input events list.
 
     Parameters
     ----------
@@ -1160,7 +1160,7 @@ def makefits(events_list = events_list,
     >>> import curvit
     >>> curvit.makefits('test_events_list.fits', 28.7185)
     
-    The above script will generate a FITS image called ``test_events_list_quick_look.fits``.
+    The above script will generate a FITS image called ``test_events_list_image.fits``.
     You may open it in software such as DS9 to view the image. 
     """
 
@@ -1168,7 +1168,7 @@ def makefits(events_list = events_list,
     weights = photons / framecount_per_sec
     bins = np.arange(0, 4801)
     ndarray, yedges, xedges = np.histogram2d(fy, fx, bins = (bins, bins), weights = weights)  
-    fits_name = events_list.replace('.fits', '_quick_look.fits')
+    fits_name = events_list.replace('.fits', '_image.fits')
     hdu = fits.PrimaryHDU(data = ndarray)
     try:
         hdu.header['RA_PNT'] = fits.open(events_list)[1].header['RA_PNT_RADEC']
@@ -1186,8 +1186,8 @@ def makefits(events_list = events_list,
         hdu.header['EXPTIME'] = fits.open(events_list)[0].header['EXPTIME']
     except KeyError:
         pass
-
     hdu.writeto(fits_name, overwrite = True)      
+    print('The image: {}'.format(fits_name))    
     
 def rebin(arr, bin_factor):
     shape = (int(arr.shape[0] / bin_factor), bin_factor,
@@ -1237,7 +1237,7 @@ def combine_events_lists(events_lists_paths = None,
     Parameters
     ----------
     events_lists_paths : list
-        The list of events list FITS file paths to be aligned and combined.
+        The list of events list FITS file paths.
         
     shift_algorithm : {'single_star', 'multiple_star'}, optional
         The parameter to choose between available aligning methods. 
@@ -1254,6 +1254,18 @@ def combine_events_lists(events_lists_paths = None,
                 
     framecount_per_sec : float, optional
         The framerate of the observation.
+        
+    Warning
+    -------
+    While combining events lists, do not mix data from ``RAS_VIS`` 
+    and ``RAS_NUV``. In most cases, ``RAS_VIS`` data should be preferred. 
+    
+    Example
+    --------
+    >>> import curvit
+    >>> from glob import glob
+    >>> file_path_list = glob('*/*/*/RAS_VIS/*/F*/*F1*ce*')
+    >>> curvit.combine_events_lists(file_path_list)
     """
     
     print('\nWorking on the following events lists:')
@@ -1267,7 +1279,7 @@ def combine_events_lists(events_lists_paths = None,
         time, fx, fy, photons = read_columns(path)
         nbin_check = (time.max() - time.min()) / min_exptime
         if nbin_check < 1:
-            print('\n{} ignored.\nEvents list contain little data.'.format(path))
+            print('\n{} ignored.\nExposure time below {} seconds.'.format(path, min_exptime))
             continue
             
         uA = []    
@@ -1466,7 +1478,7 @@ def combine_events_lists(events_lists_paths = None,
     print('Total combined exposure time = {:.4f} seconds'.format(exp_time))
     hdu_base[0].header['EXPTIME'] = exp_time
     hdu_base.flush()
-    
+    print('The combined events list: {}'.format(combined_eventslist_name))    
     print("\nDone!\n")
     
 def image_astrometry(UV_image = None, threshold = 3, API_key = AstrometryNet_API_key):

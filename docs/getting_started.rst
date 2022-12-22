@@ -6,7 +6,9 @@ Curvit's capabilities can be best demonstrated by examples.
 First, we need to get events list to be provided as input (an events list is a 
 FITS file containing events). 
 Go to ISSDC's `AstroBrowse website <https://astrobrowse.issdc.gov.in/astro_archive/archive/Home.jsp>`__ 
-and download UVIT data of your interest. 
+and download UVIT data of your interest.
+If you are new to the Astrobrowse website and UVIT Leve2 data, 
+`please visit this page for a quick walkthrough. <https://github.com/prajwel/UVIT_notebooks/blob/main/notebook3_How_to_download_UVIT_data_from_ISSDC_Astrobrowse.ipynb>`__ 
 Here, as an example, the publicly available Level2 data of FO Aqr was chosen 
 (Observation ID: ``G06_084T01_9000000710``).
 
