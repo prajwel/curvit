@@ -7,7 +7,7 @@ API
 
     api/makecurves
     api/curve
-    api/makefits
+    api/make_image
     api/process_ccdlab
     api/combine_events_lists
     api/image_astrometry

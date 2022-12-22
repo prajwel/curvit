@@ -7,6 +7,10 @@ Changelog
     
         pip install curvit --upgrade
         
+1.5.1
+-----
+makefits() function has been renamed to :doc:`/api/make_image`.
+        
 1.5.0
 -----
         

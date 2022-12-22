@@ -1113,8 +1113,8 @@ def process_ccdlab(output = None,
     tbhdu.writeto(output, overwrite = True) 
     print('The events list: {}'.format(output))  
 
-def makefits(events_list = events_list, 
-             framecount_per_sec = framecount_per_sec):
+def make_image(events_list = events_list, 
+               framecount_per_sec = framecount_per_sec):
 
     """Create a FITS image from the input events list.
 
@@ -1158,7 +1158,7 @@ def makefits(events_list = events_list,
     Example
     --------
     >>> import curvit
-    >>> curvit.makefits('test_events_list.fits', 28.7185)
+    >>> curvit.make_image('test_events_list.fits', 28.7185)
     
     The above script will generate a FITS image called ``test_events_list_image.fits``.
     You may open it in software such as DS9 to view the image. 
@@ -1188,6 +1188,13 @@ def makefits(events_list = events_list,
         pass
     hdu.writeto(fits_name, overwrite = True)      
     print('The image: {}'.format(fits_name))    
+    
+# Remove soon.    
+def makefits(events_list = events_list, 
+             ramecount_per_sec = framecount_per_sec):
+    print('Deprecated function. Please use make_image instead.')
+    return make_image(events_list = events_list, 
+                      framecount_per_sec = framecount_per_sec)    
     
 def rebin(arr, bin_factor):
     shape = (int(arr.shape[0] / bin_factor), bin_factor,
