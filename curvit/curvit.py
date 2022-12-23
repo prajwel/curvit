@@ -1116,7 +1116,8 @@ def process_ccdlab(output = None,
 def make_image(events_list = events_list, 
                framecount_per_sec = framecount_per_sec):
 
-    """Create a FITS image from the input events list.
+    """Create a FITS image from the input events list. 
+    The image unit is in counts. 
 
     Parameters
     ----------
