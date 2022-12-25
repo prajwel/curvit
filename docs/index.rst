@@ -5,13 +5,12 @@
 
 .. image:: curvit_banner.svg
 
-Welcome to Curvit's documentation!
-This website will walk you through the steps of installing and getting
-familiarized with Curvit and creating light curves using UVIT data. 
+Welcome to Curvit’s documentation! Curvit can be used 
+to create light curves from AstroSat UVIT data. 
 
 .. important::
-    If you use Curvit for work presented in a publication or talk, please help 
-    by providing a :ref:`citation`. 
+    Please include a :ref:`citation` if you use Curvit for work 
+    presented in a publication or talk. 
     
 .. caution::
     The software is under `active development <https://github.com/prajwel/curvit>`_. 

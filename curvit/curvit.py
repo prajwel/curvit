@@ -1236,6 +1236,7 @@ def new_detect_sources_daofind(fx, fy, photons, threshold, framecount_per_sec):
     return uA
 
 def combine_events_lists(events_lists_paths = None, 
+                         threshold = 5,
                          shift_algorithm = shift_algorithm, 
                          min_exptime = min_exptime,
                          framecount_per_sec = framecount_per_sec):
@@ -1247,14 +1248,22 @@ def combine_events_lists(events_lists_paths = None,
     events_lists_paths : list
         The list of events list FITS file paths.
         
+    threshold : float, optional
+        The threshold parameter associated with the source detection method. 
+        The default value is 5. The threshold is lowered in steps of 0.5
+        until a minimum number of sources are detected. The minimum number
+        depends on the **shift_algorithm**.  
+                
     shift_algorithm : {'single_star', 'multiple_star'}, optional
         The parameter to choose between available aligning methods. 
         
         * ``'single_star'``: To use a single star for aligning orbits. 
             Single_star option is useful only when there is only one star 
-            in the field and no rotation between frames.
+            in the field and no rotation between frames. The minimum number of
+            source detection is 2. 
         * ``'multiple_star'``: To use multiple stars for aligning orbits. 
-            This is recommended and the default method.
+            This is the **recommended** and default method. The minimum 
+            number of source detection is 3. 
                                
     min_exptime : float, optional
         Orbits having exposure time below this limit will be ignored. 
@@ -1280,6 +1289,10 @@ def combine_events_lists(events_lists_paths = None,
     >>> curvit.combine_events_lists(file_path_list)
     """
     
+    if shift_algorithm not in ['single_star', 'multiple_star']:
+        print('\nInvalid input for "shift_algorithm" parameter.\n')
+        return   
+    
     print('\nWorking on the following events lists:')
     print(*events_lists_paths, sep='\n')
     print('')
@@ -1297,7 +1310,7 @@ def combine_events_lists(events_lists_paths = None,
         uA = []    
         if shift_algorithm == 'single_star':
             number_of_sources = 2
-            i = 6
+            i = threshold
             while len(uA) <= number_of_sources:
                 uA = new_detect_sources_daofind(fx, fy, photons, i, framecount_per_sec)
                 i = i - 0.5
@@ -1306,7 +1319,7 @@ def combine_events_lists(events_lists_paths = None,
                     break
         else:
             number_of_sources = 3
-            i = 5
+            i = threshold
             while len(uA) <= number_of_sources:
                 uA = new_detect_sources_daofind(fx, fy, photons, i, framecount_per_sec)
                 if len(uA) > 200:
