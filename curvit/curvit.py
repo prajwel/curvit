@@ -37,7 +37,8 @@ from scipy.ndimage import zoom
 from scipy.spatial import KDTree
 from scipy.interpolate import interp1d
 from matplotlib.colors import LogNorm
-from photutils import DAOStarFinder, CircularAperture
+from photutils.detection import DAOStarFinder
+from photutils.aperture import CircularAperture
 from photutils.background import Background2D, MedianBackground
 from astropy.io import fits
 from astropy.convolution import Gaussian2DKernel, convolve
