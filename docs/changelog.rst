@@ -6,6 +6,11 @@ Changelog
     If you have an older version, please upgrade::
     
         pip install curvit --upgrade
+
+1.5.3
+-----   
+FITS file writing related bug in :doc:`/api/image_astrometry` was fixed. 
+Bug reported by Vikrant Jadhav. 
         
 1.5.2
 -----   

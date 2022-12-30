@@ -1503,7 +1503,7 @@ def combine_events_lists(events_lists_paths = None,
     exp_time = unique_frames / AVGFRMRT 
     print('Total combined exposure time = {:.4f} seconds'.format(exp_time))
     hdu_base[0].header['EXPTIME'] = exp_time
-    hdu_base.flush()
+    hdu_base.close()
     print('The combined events list: {}'.format(combined_eventslist_name))    
     print("\nDone!\n")
     
@@ -1539,7 +1539,7 @@ def image_astrometry(UV_image = None, threshold = 3, API_key = AstrometryNet_API
     >>> import curvit
     >>> curvit.image_astrometry('test.fits')        
     """    
-    hdu = fits.open(UV_image)
+    hdu = fits.open(UV_image, mode = 'update')
     sources = daofind_on_image_data(hdu[0].data, threshold)
     sources = sources + 1
     print('Number of detected sources = {}'.format(len(sources)))
@@ -1601,7 +1601,8 @@ def image_astrometry(UV_image = None, threshold = 3, API_key = AstrometryNet_API
             pass 
             
         hdu[0].header.update(wcs_header)
-        hdu.writeto(UV_image, overwrite = True)
         print('Image header updated with WCS.')
     else:
-        print('\nAstrometry.net solve FAILED!!!\n')        
+        print('\nAstrometry.net solve FAILED!!!\n')  
+    # To save all changes.    
+    hdu.close()        
