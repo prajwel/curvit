@@ -9,13 +9,13 @@ Changelog
 
 1.5.4
 -----   
-Parameters ``NUM_NEAREST_NEIGHBORS`` and ``MIN_MATCHES_FRACTION`` has been 
+Parameters ``NUM_NEAREST_NEIGHBORS`` and ``MIN_MATCHES_FRACTION`` have been 
 added to the :doc:`/api/combine_events_lists` function.
 
 1.5.3
 -----   
-FITS file writing bug in the :doc:`/api/image_astrometry` function was fixed. 
-The bug was reported by Vikrant Jadhav.
+The FITS file writing bug in the :doc:`/api/image_astrometry` function was fixed. 
+This bug was reported by Vikrant Jadhav.
         
 1.5.2
 -----   
