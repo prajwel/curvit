@@ -129,11 +129,9 @@ shift_algorithm = 'multiple_star' # 'single_star' or 'multiple_star'.
 
 min_exptime = 100 # will ignore orbits with exptimes below limit.
 
-'''Astroalign settings. Change only if you know what you are 
-doing.'''
-aa.NUM_NEAREST_NEIGHBORS = 7
-aa.MIN_MATCHES_FRACTION = 0.1
-aa.PIXEL_TOL = 2
+# Astroalign defaults. 
+NUM_NEAREST_NEIGHBORS = 7
+MIN_MATCHES_FRACTION = 0.1
 
 # For Astrometry.
 AstrometryNet_API_key = 'ujmrvwqqyelxmzcj'  
@@ -1238,6 +1236,8 @@ def new_detect_sources_daofind(fx, fy, photons, threshold, framecount_per_sec):
 
 def combine_events_lists(events_lists_paths = None, 
                          threshold = 5,
+                         NUM_NEAREST_NEIGHBORS = NUM_NEAREST_NEIGHBORS,
+                         MIN_MATCHES_FRACTION = MIN_MATCHES_FRACTION,
                          shift_algorithm = shift_algorithm, 
                          min_exptime = min_exptime,
                          framecount_per_sec = framecount_per_sec):
@@ -1254,7 +1254,15 @@ def combine_events_lists(events_lists_paths = None,
         The default value is 5. The threshold is lowered in steps of 0.5
         until a minimum number of sources are detected. The minimum number
         depends on the **shift_algorithm**.  
-                
+        
+    NUM_NEAREST_NEIGHBORS : int, optional    
+        See https://astroalign.quatrope.org/en/latest/api.html#astroalign.NUM_NEAREST_NEIGHBORS
+        for details. The default value is 7. Only relevant for ``'multiple_star'`` method.
+
+    MIN_MATCHES_FRACTION : float, optional    
+        See https://astroalign.quatrope.org/en/latest/api.html#astroalign.MIN_MATCHES_FRACTION
+        for details. The default value is 0.1. Only relevant for ``'multiple_star'`` method.
+                        
     shift_algorithm : {'single_star', 'multiple_star'}, optional
         The parameter to choose between available aligning methods. 
         
@@ -1289,7 +1297,11 @@ def combine_events_lists(events_lists_paths = None,
     >>> file_path_list = glob('*/*/*/RAS_VIS/*/F*/*F1*ce*')
     >>> curvit.combine_events_lists(file_path_list)
     """
-    
+
+    aa.NUM_NEAREST_NEIGHBORS = NUM_NEAREST_NEIGHBORS
+    aa.MIN_MATCHES_FRACTION = MIN_MATCHES_FRACTION
+    aa.PIXEL_TOL = 2    
+        
     if shift_algorithm not in ['single_star', 'multiple_star']:
         print('\nInvalid input for "shift_algorithm" parameter.\n')
         return   
