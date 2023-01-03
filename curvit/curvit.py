@@ -1288,7 +1288,7 @@ def combine_events_lists(events_lists_paths = None,
     
     Note
     ---- 
-    Please cite the Astroalign package if you are using this function.     
+    Please also cite the Astroalign package if you are using this function.     
     
     Example
     --------
@@ -1544,7 +1544,7 @@ def image_astrometry(UV_image = None, threshold = 3, API_key = AstrometryNet_API
         
     Note
     ---- 
-    Please cite Astrometry.net if you are using this function.        
+    Please also cite Astrometry.net and Astroquery if you are using this function.
         
     Example
     --------
