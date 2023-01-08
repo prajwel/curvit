@@ -127,11 +127,11 @@ nuv_ratio_function = interp1d(radius_pixels, nuv_ratio, kind = 'cubic')
 the field and no rotation between frames.'''
 shift_algorithm = 'multiple_star' # 'single_star' or 'multiple_star'.
 
-min_exptime = 100 # will ignore orbits with exptimes below limit.
+min_exptime = 30 # will ignore orbits with exptimes below limit.
 
 # Astroalign defaults. 
-NUM_NEAREST_NEIGHBORS = 7
-MIN_MATCHES_FRACTION = 0.1
+NUM_NEAREST_NEIGHBORS = 8
+MIN_MATCHES_FRACTION = 0.01
 
 # For Astrometry.
 AstrometryNet_API_key = 'ujmrvwqqyelxmzcj'  
@@ -1235,7 +1235,7 @@ def new_detect_sources_daofind(fx, fy, photons, threshold, framecount_per_sec):
     return uA
 
 def combine_events_lists(events_lists_paths = None, 
-                         threshold = 5,
+                         threshold = 8,
                          NUM_NEAREST_NEIGHBORS = NUM_NEAREST_NEIGHBORS,
                          MIN_MATCHES_FRACTION = MIN_MATCHES_FRACTION,
                          shift_algorithm = shift_algorithm, 
@@ -1251,17 +1251,17 @@ def combine_events_lists(events_lists_paths = None,
         
     threshold : float, optional
         The threshold parameter associated with the source detection method. 
-        The default value is 5. The threshold is lowered in steps of 0.5
+        The default value is 8. The threshold is lowered in steps of 0.5
         until a minimum number of sources are detected. The minimum number
         depends on the **shift_algorithm**.  
         
     NUM_NEAREST_NEIGHBORS : int, optional    
         See https://astroalign.quatrope.org/en/latest/api.html#astroalign.NUM_NEAREST_NEIGHBORS
-        for details. The default value is 7. Only relevant for ``'multiple_star'`` method.
+        for details. The default value is 8. Only relevant for ``'multiple_star'`` method.
 
     MIN_MATCHES_FRACTION : float, optional    
         See https://astroalign.quatrope.org/en/latest/api.html#astroalign.MIN_MATCHES_FRACTION
-        for details. The default value is 0.1. Only relevant for ``'multiple_star'`` method.
+        for details. The default value is 0.01. Only relevant for ``'multiple_star'`` method.
                         
     shift_algorithm : {'single_star', 'multiple_star'}, optional
         The parameter to choose between available aligning methods. 
@@ -1272,11 +1272,13 @@ def combine_events_lists(events_lists_paths = None,
             source detection is 2. 
         * ``'multiple_star'``: To use multiple stars for aligning orbits. 
             This is the **recommended** and default method. The minimum 
-            number of source detection is 3. 
+            number of source detection is 3. The function will automatically 
+            modify the threshold to limit the maximum number of detections 
+            to below 200. 
                                
     min_exptime : float, optional
         Orbits having exposure time below this limit will be ignored. 
-        the default value is 100 seconds. 
+        the default value is 30 seconds. 
                 
     framecount_per_sec : float, optional
         The framerate of the observation.
@@ -1335,12 +1337,16 @@ def combine_events_lists(events_lists_paths = None,
             i = threshold
             while len(uA) <= number_of_sources:
                 uA = new_detect_sources_daofind(fx, fy, photons, i, framecount_per_sec)
-                if len(uA) > 200:
-                    uA = new_detect_sources_daofind(fx, fy, photons, i + 5, framecount_per_sec)
                 i = i - 0.5
                 if i <= 1:
                     print('If you see this, please contact Curvit developer.')
                     break  
+            while len(uA) > 200:
+                uA = new_detect_sources_daofind(fx, fy, photons, i, framecount_per_sec)
+                i = i + i
+                if i >= 1e20:
+                    print('If you see this, please contact Curvit developer.')
+                    break
 
         print('{} sources detected in {}'.format(len(uA), path))
 

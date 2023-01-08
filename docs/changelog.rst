@@ -7,6 +7,14 @@ Changelog
     
         pip install curvit --upgrade
 
+1.5.5
+----- 
+The :doc:`/api/combine_events_lists` function has been updated with new
+default parameters. 
+The function will automatically modify the threshold to limit the 
+maximum number of detections to below 200.
+
+
 1.5.4
 -----   
 Parameters ``NUM_NEAREST_NEIGHBORS`` and ``MIN_MATCHES_FRACTION`` have been 
