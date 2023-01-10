@@ -7,6 +7,13 @@ Changelog
     
         pip install curvit --upgrade
 
+1.5.6
+----- 
+Parameters ``minimum_detections`` and ``maximum_detections`` have been 
+added to the :doc:`/api/combine_events_lists` function.
+The function will automatically modify the threshold to meet the 
+minimum and maximum number of detections criteria.
+
 1.5.5
 ----- 
 The :doc:`/api/combine_events_lists` function has been updated with new

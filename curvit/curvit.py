@@ -43,7 +43,6 @@ from photutils.background import Background2D, MedianBackground
 from astropy.io import fits
 from astropy.convolution import Gaussian2DKernel, convolve
 from astropy.stats import sigma_clipped_stats, gaussian_fwhm_to_sigma, sigma_clip, SigmaClip
-from astroquery.astrometry_net import AstrometryNet
  
 #######################################################################
 # Initial set of parameters.
@@ -1238,8 +1237,10 @@ def combine_events_lists(events_lists_paths = None,
                          threshold = 8,
                          NUM_NEAREST_NEIGHBORS = NUM_NEAREST_NEIGHBORS,
                          MIN_MATCHES_FRACTION = MIN_MATCHES_FRACTION,
+                         minimum_detections = 3,
+                         maximum_detections = 100,
                          shift_algorithm = shift_algorithm, 
-                         min_exptime = min_exptime,
+                         min_exptime = min_exptime,                         
                          framecount_per_sec = framecount_per_sec):
                          
     """Align and combine the events lists from different orbits.
@@ -1251,9 +1252,7 @@ def combine_events_lists(events_lists_paths = None,
         
     threshold : float, optional
         The threshold parameter associated with the source detection method. 
-        The default value is 8. The threshold is lowered in steps of 0.5
-        until a minimum number of sources are detected. The minimum number
-        depends on the **shift_algorithm**.  
+        The default value is 8. 
         
     NUM_NEAREST_NEIGHBORS : int, optional    
         See https://astroalign.quatrope.org/en/latest/api.html#astroalign.NUM_NEAREST_NEIGHBORS
@@ -1262,6 +1261,14 @@ def combine_events_lists(events_lists_paths = None,
     MIN_MATCHES_FRACTION : float, optional    
         See https://astroalign.quatrope.org/en/latest/api.html#astroalign.MIN_MATCHES_FRACTION
         for details. The default value is 0.01. Only relevant for ``'multiple_star'`` method.
+        
+    minimum_detections : int, optional
+        The minimum number of sources to be detected. The threshold will be 
+        modified to meet the criteria. 
+
+    maximum_detections : int, optional
+        The maximum number of sources to be detected. The threshold will be 
+        modified to meet the criteria.         
                         
     shift_algorithm : {'single_star', 'multiple_star'}, optional
         The parameter to choose between available aligning methods. 
@@ -1271,10 +1278,7 @@ def combine_events_lists(events_lists_paths = None,
             in the field and no rotation between frames. The minimum number of
             source detection is 2. 
         * ``'multiple_star'``: To use multiple stars for aligning orbits. 
-            This is the **recommended** and default method. The minimum 
-            number of source detection is 3. The function will automatically 
-            modify the threshold to limit the maximum number of detections 
-            to below 200. 
+            This is the **recommended** and default method. 
                                
     min_exptime : float, optional
         Orbits having exposure time below this limit will be ignored. 
@@ -1321,32 +1325,35 @@ def combine_events_lists(events_lists_paths = None,
         if nbin_check < 1:
             print('\n{} ignored.\nExposure time below {} seconds.'.format(path, min_exptime))
             continue
-            
+       
+        # TODO: The following seems like a bad way to do this. Fix it later    
         uA = []    
         if shift_algorithm == 'single_star':
-            number_of_sources = 2
-            i = threshold
-            while len(uA) <= number_of_sources:
-                uA = new_detect_sources_daofind(fx, fy, photons, i, framecount_per_sec)
-                i = i - 0.5
-                if i <= 1:
+            while len(uA) <= minimum_detections:
+                uA = new_detect_sources_daofind(fx, fy, photons, threshold, framecount_per_sec)
+                threshold = threshold - 0.5
+                if threshold <= 1:
                     print('If you see this, please contact Curvit developer.')
-                    break
+                    break     
+            while len(uA) > maximum_detections:
+                uA = new_detect_sources_daofind(fx, fy, photons, threshold, framecount_per_sec)
+                threshold = 2 * threshold
+                if threshold >= 1e20:
+                    print('If you see this, please contact Curvit developer.')
+                    break                                   
         else:
-            number_of_sources = 3
-            i = threshold
-            while len(uA) <= number_of_sources:
-                uA = new_detect_sources_daofind(fx, fy, photons, i, framecount_per_sec)
-                i = i - 0.5
-                if i <= 1:
+            while len(uA) <= minimum_detections:
+                uA = new_detect_sources_daofind(fx, fy, photons, threshold, framecount_per_sec)
+                threshold = threshold - 0.5
+                if threshold <= 1:
                     print('If you see this, please contact Curvit developer.')
                     break  
-            while len(uA) > 200:
-                uA = new_detect_sources_daofind(fx, fy, photons, i, framecount_per_sec)
-                i = i + i
-                if i >= 1e20:
+            while len(uA) > maximum_detections:
+                uA = new_detect_sources_daofind(fx, fy, photons, threshold, framecount_per_sec)
+                threshold = 2 * threshold
+                if threshold >= 1e20:
                     print('If you see this, please contact Curvit developer.')
-                    break
+                    break                   
 
         print('{} sources detected in {}'.format(len(uA), path))
 
@@ -1557,6 +1564,8 @@ def image_astrometry(UV_image = None, threshold = 3, API_key = AstrometryNet_API
     >>> import curvit
     >>> curvit.image_astrometry('test.fits')        
     """    
+    from astroquery.astrometry_net import AstrometryNet
+    
     hdu = fits.open(UV_image, mode = 'update')
     sources = daofind_on_image_data(hdu[0].data, threshold)
     sources = sources + 1
