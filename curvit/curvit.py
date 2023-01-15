@@ -1378,11 +1378,16 @@ def combine_events_lists(events_lists_paths = None,
                 transf, (source_list, target_list) = aa.find_transform(elist, reference, max_control_points = 100)  
 
                 img_path = ntpath.split(path)[0] + '/*I_l2img*'
+                eventslist_header = fits.getheader(path)
                 if len(glob(img_path)) == 1:
                     img_hdu = fits.open(glob(img_path)[0])
                     framerate_from_header.append(1 / img_hdu[0].header['INT_TIME'])
                     RA_pointing = img_hdu[0].header['RA_PNT']
                     DEC_pointing = img_hdu[0].header['DEC_PNT']
+                elif 'AVGFRMRT' in eventslist_header:
+                    framerate_from_header.append(eventslist_header['AVGFRMRT'])
+                    RA_pointing = eventslist_header['RA_PNT']
+                    DEC_pointing = eventslist_header['DEC_PNT']    
                 else:
                     print('Requires exactly one file matching *I_l2img* in directory {}!'.format(ntpath.split(path)[0]))
                     sys.exit()
@@ -1455,11 +1460,16 @@ def combine_events_lists(events_lists_paths = None,
         for shift, path in zip(shifts, select_events_lists_paths):
 
             img_path = ntpath.split(path)[0] + '/*I_l2img*'
+            eventslist_header = fits.getheader(path)
             if len(glob(img_path)) == 1:
                 img_hdu = fits.open(glob(img_path)[0])
                 framerate_from_header.append(1 / img_hdu[0].header['INT_TIME'])
                 RA_pointing = img_hdu[0].header['RA_PNT']
                 DEC_pointing = img_hdu[0].header['DEC_PNT']
+            elif 'AVGFRMRT' in eventslist_header:
+                framerate_from_header.append(eventslist_header['AVGFRMRT'])
+                RA_pointing = eventslist_header['RA_PNT']
+                DEC_pointing = eventslist_header['DEC_PNT']                    
             else:
                 print('Requires exactly one file matching *I_l2img* in directory {}!'.format(ntpath.split(path)[0]))
                 sys.exit()
