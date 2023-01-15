@@ -7,6 +7,13 @@ Changelog
     
         pip install curvit --upgrade
 
+1.5.7
+-----
+Bug fix for the :doc:`/api/combine_events_lists` function. 
+In the previous versions, the threshold value was not getting
+reset after automatic threshold modification. 
+
+
 1.5.6
 ----- 
 Parameters ``minimum_detections`` and ``maximum_detections`` have been 

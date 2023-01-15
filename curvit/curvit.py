@@ -1318,8 +1318,10 @@ def combine_events_lists(events_lists_paths = None,
 
     exptimes = []
     detected_sources = []
-    select_events_lists_paths = []    
+    select_events_lists_paths = []   
+    default_threshold = threshold  
     for path in events_lists_paths:
+        threshold = default_threshold
         time, fx, fy, photons = read_columns(path)
         nbin_check = (time.max() - time.min()) / min_exptime
         if nbin_check < 1:
