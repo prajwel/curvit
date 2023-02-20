@@ -7,6 +7,12 @@ Changelog
     
         pip install curvit --upgrade
 
+1.5.8
+-----
+:doc:`/api/combine_events_lists` function can now be used
+to combine already combined events lists from multiple 
+observation IDs. 
+
 1.5.7
 -----
 Bug fix for the :doc:`/api/combine_events_lists` function. 
