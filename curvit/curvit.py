@@ -137,6 +137,11 @@ AstrometryNet_API_key = 'ujmrvwqqyelxmzcj'
 #######################################################################
 
 
+def weighted_centre(x_coords, y_coords, weights):
+    weighted_x = np.sum(np.array(x_coords) * np.array(weights)) / np.sum(weights)
+    weighted_y = np.sum(np.array(y_coords) * np.array(weights)) / np.sum(weights)
+    return (weighted_x, weighted_y)
+
 def read_columns(events_list):
     # Reading few columns.
     f = fits.open(events_list)
@@ -225,7 +230,8 @@ def auto_bg(fx, fy, time, photons, radius, framecount_per_sec, sky_radius):
     y_mesh = y_mesh.flatten()
     # To avoid the edges. 
     mask_radius = 1700
-    mask = (x_mesh - 2400) ** 2 + (y_mesh - 2400) ** 2 <= mask_radius ** 2
+    image_x_centre, image_y_centre = weighted_centre(fx, fy, weights)
+    mask = (x_mesh - image_x_centre) ** 2 + (y_mesh - image_y_centre) ** 2 <= mask_radius ** 2
     array = np.array([flat_counts, x_mesh, y_mesh]).T 
     polished_array = array[mask]
     bg_mask = sigma_clip(polished_array[:, 0], sigma = 3, maxiters = 5)
@@ -297,10 +303,13 @@ def create_sub_image(pos_x, pos_y,
 
 # To find positions of interest (using daofind algorithm).
 def detect_sources_daofind(fx, fy, photons, threshold):
+    weights = photons / framecount_per_sec
+    image_x_centre, image_y_centre = weighted_centre(fx, fy, weights)
+    
     mask_radius = 1700
     kernel = Gaussian2DKernel(x_stddev = 4 * gaussian_fwhm_to_sigma)
 
-    aperture = CircularAperture((2400, 2400), r = mask_radius)
+    aperture = CircularAperture((image_x_centre, image_y_centre), r = mask_radius)
     mask = aperture.to_mask(method = 'center')
     mask = mask.to_image(shape = ((4800, 4800)))
 

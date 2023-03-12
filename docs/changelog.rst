@@ -7,6 +7,11 @@ Changelog
     
         pip install curvit --upgrade
 
+1.5.9
+-----
+Replaced the previous fixed image centre value of (2400, 2400) with a 
+function call that estimates the weighted centroid of all events.
+
 1.5.8
 -----
 :doc:`/api/combine_events_lists` function can now be used
