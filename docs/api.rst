@@ -7,6 +7,7 @@ API
 
     api/makecurves
     api/curve
+    api/curve_orbitwise
     api/make_image
     api/process_ccdlab
     api/combine_events_lists

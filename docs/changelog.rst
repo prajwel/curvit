@@ -7,6 +7,13 @@ Changelog
     
         pip install curvit --upgrade
 
+1.6.0
+-----
+Added :doc:`/api/curve_orbitwise` function to create a light curve for a 
+source, generating one data point per orbit. 
+This function works best with the combined events list produced using 
+:doc:`/api/combine_events_lists`.
+
 1.5.9
 -----
 Replaced the previous fixed image centre value of (2400, 2400) with a 
@@ -61,12 +68,12 @@ The makefits() function has been renamed to :doc:`/api/make_image`.
         
 1.5.0
 -----   
-:doc:`/api/image_astrometry` function to carry out 
+Added :doc:`/api/image_astrometry` function to carry out 
 astrometry on a UVIT image using Astrometry.net.      
         
 1.4.0
 -----     
-:doc:`/api/combine_events_lists` function to combine events lists from 
+Added :doc:`/api/combine_events_lists` function to combine events lists from 
 multiple orbits and create a single combined events list. 
 
 1.3.3

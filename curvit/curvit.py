@@ -1018,6 +1018,299 @@ def curve(events_list = events_list,
     print("\nDone!\n")
     plt.close('all') 
     
+def curve_orbitwise(events_list = events_list,
+                    xp = xp,
+                    yp = yp,
+                    radius = radius,
+                    framecount_per_sec = framecount_per_sec,
+                    background = background,
+                    sky_radius = sky_radius,
+                    x_bg = x_bg,
+                    y_bg = y_bg,
+                    aperture_correction = aperture_correction,
+                    saturation_correction = saturation_correction,
+                    whole_figure_resolution = whole_figure_resolution,
+                    sub_fig_size = sub_fig_size,
+                    fontsize = fontsize):
+                   
+    """
+    Create a light curve for a source, generating one data point per orbit. 
+    This function works best with the combined events list produced using 
+    :doc:`/api/combine_events_lists`.
+
+    Parameters
+    ----------
+    events_list : file path
+        The name of the events list FITS file.
+        
+    xp : float
+        The X-coordinate of the source.
+        
+    yp : float
+        The Y-coordinate of the source. 
+        
+    radius : float, optional
+        The source aperture radius in pixels. 
+        This parameter has a default value of 6.        
+        
+    framecount_per_sec : float, optional
+        The framerate of the observation, with a default value of 28.7185
+        frames per second for 512 x 512 window mode. 
+        The most accurate way to get the framerate would be to take the value 
+        of (``1 / INT_TIME``). 
+        ``INT_TIME`` value can be found from the corresponding image header. 
+        Approximate values of framerate for different window modes of UVIT 
+        are given in the table below.
+
+        +---------------+---------------------+
+        | window mode   | frames per second   |
+        +===============+=====================+
+        | 512 x 512     | 28.7                |
+        +---------------+---------------------+
+        | 350 x 350     | 61                  |
+        +---------------+---------------------+
+        | 300 x 300     | 82                  |
+        +---------------+---------------------+
+        | 250 x 250     | 115                 |
+        +---------------+---------------------+
+        | 200 x 200     | 180                 |
+        +---------------+---------------------+
+        | 150 x 150     | 300                 |
+        +---------------+---------------------+
+        | 100 x 100     | 640                 |
+        +---------------+---------------------+ 
+
+    background : {'auto', 'manual', None}, optional
+        The parameter affects how the background count-rate estimation is done. 
+        
+        * ``'auto'``: Automatic estimation of the background count-rate.
+        * ``'manual'``: To manually specify a background region using **x_bg** and **y_bg** parameters.
+        * ``None``: No background estimation is carried out. This is the default method.
+     
+    sky_radius: float, optional
+        The background aperture radius in pixels. 
+        The default value is 12.
+        
+    x_bg : float, optional
+        The X-coordinate of the background region. 
+        
+    y_bg : float, optional
+        The Y-coordinate of the background region. 
+        
+    aperture_correction : {'fuv', 'nuv', None}, optional
+        The parameter affects how the aperture correction is done. 
+        
+        * ``'fuv'``: Aperture correction for the FUV channel is applied. 
+        * ``'nuv'``: Aperture correction for the NUV channel is applied.
+        * ``None``: No aperture correction is applied. This is the default method.
+        
+    saturation_correction : bool, optional
+        If `True`, saturation correction is applied. 
+        The default value is `False`. 
+
+    Note
+    ---- 
+    It is essential to set the correct value of the framerate. 
+    Most UVIT observations are carried out in 512 x 512 window mode.
+        
+    Example
+    --------    
+    >>> curve_orbitwise('AS1G05_240T01_9000000674uvtFIIPC00F2_l2ce_all_orbits.fits', 
+    ...                 xp = 1425.26, yp = 1861.78, 
+    ...                 radius = 15,
+    ...                 background = 'auto')    
+    
+    ::
+    
+        The estimated background CPS = 0.01473 +/-0.00073
+
+        -------------------------- curve --------------------------
+        source: source_AS1G05_240T01_9000000674uvtFIIPC00F2_l2ce_all_orbits.png
+                source_zoomed_AS1G05_240T01_9000000674uvtFIIPC00F2_l2ce_all_orbits.png
+        data: curve_1425.26_1861.78_AS1G05_240T01_9000000674uvtFIIPC00F2_l2ce_all_orbits.dat
+        plot: curve_1425.26_1861.78_AS1G05_240T01_9000000674uvtFIIPC00F2_l2ce_all_orbits.png
+
+        Done!
+    """
+
+    time, fx, fy, photons = read_columns(events_list)
+    weights = photons / framecount_per_sec
+
+    if None in [xp, yp]:
+        print('\nPlease provide values for both "xp" and "yp".\n')
+        return 
+    
+    sanity = tobe_or_notobe(time, 1, 
+                            detection_method,
+                            1,
+                            how_many, 
+                            background, 
+                            x_bg, y_bg,
+                            aperture_correction, radius,
+                            saturation_correction)
+    if sanity < 1:
+        return
+
+    path_to_events_list, events_list = ntpath.split(events_list)
+    events_list = modify_string(events_list)
+
+    # To automatically choose background region.
+    plt.figure(figsize = (10.5, 10))
+    if background == 'auto':
+        lowres_counts, bg_CPS, bg_CPS_e = auto_bg(fx, fy, time, photons, radius,
+                                                  framecount_per_sec, sky_radius)
+        
+    # To create a quick look figure marking sources and background.
+    bins = np.arange(0, 4801, 4096 / whole_figure_resolution)    
+    plt.hist2d(fx, fy, 
+               bins = (bins, bins),
+               weights = weights,
+               norm = LogNorm())
+
+    plt.tick_params(axis = 'both', labelsize = fontsize)
+
+    plt.annotate("Source", (xp, yp), 
+                 size = 13, color = 'black', fontweight = 'bold')
+
+    obj_circle = plt.Circle((xp, yp), 100, color = 'k', fill = False)
+    plt.gcf().gca().add_artist(obj_circle)
+
+    if background == 'manual':
+        plt.annotate('Background', (x_bg, y_bg),
+                     size = 13, color = 'black', fontweight = 'bold')
+
+        bg_circle = plt.Circle((x_bg, y_bg), 100, color = 'k', fill = False)
+        plt.gcf().gca().add_artist(bg_circle)
+        
+    png_name = os.path.join(path_to_events_list, 'source_' + events_list + '.png')
+    plt.savefig(png_name, format = 'png', bbox_inches = 'tight')
+    plt.clf()     
+        
+    source_png = create_sub_image(xp, yp, 
+                                  sub_fig_size, 
+                                  radius, 
+                                  'source_zoomed_',
+                                  fx, fy,
+                                  path_to_events_list,
+                                  events_list)
+    
+    if background != None:
+        if background == 'auto':
+            print('\nThe estimated background CPS = {:.5f} +/-{:.5f}'.format(bg_CPS, bg_CPS_e))
+        if background == 'manual':
+            # To estimate Background CPS.
+            bg_CPS, bg_CPS_e = bg_estimate(fx, fy, time, photons, framecount_per_sec,
+                                           radius, x_bg, y_bg, sky_radius)
+            bg_png = create_sub_image(x_bg, y_bg, 
+                                      sub_fig_size, 
+                                      sky_radius, 
+                                      'background_',
+                                      fx, fy,
+                                      path_to_events_list,
+                                      events_list)
+            print('\nThe estimated background CPS = {:.5f} +/-{:.5f}'.format(bg_CPS, bg_CPS_e))
+            print('Region selected for background estimate:\n* {}'.format(bg_png))
+    else:
+        bg_CPS, bg_CPS_e = 0, 0 
+
+    unique_time = np.unique(time)
+    unique_time = np.sort(unique_time)
+
+    # Define threshold for time differences (in seconds)
+    orbit_time_difference = 30 * 60 
+
+    # Calculate differences between consecutive elements
+    diffs = np.diff(unique_time)
+
+    # Find indices where differences exceed threshold
+    boundaries = np.where(diffs > orbit_time_difference)[0] + 1
+
+    # Ranges for numpy histogram. 
+    ranges = np.concatenate([[0], boundaries, [len(unique_time) -1]])
+    ranges = unique_time[ranges]
+    
+    # selecting events within a circular region.
+    mask = ((fx - xp) ** 2 + (fy - yp) ** 2) <= radius ** 2    
+    T = time[mask]
+    W = weights[mask]  
+
+    # Changing mission elapsed time in seconds to modified julian date.
+    T = met_to_mjd(T)
+    # till_here = met_to_mjd(till_here)
+    # time_start = met_to_mjd(time.min())
+    unique_time = met_to_mjd(unique_time)
+    ranges = met_to_mjd(ranges)
+    
+    time_start = ranges[0]
+    till_here = ranges[-1]
+    
+    # Binning stuff, plotting stuff.
+    plt.figure(figsize = (8, 5))
+    plt.title('radius = %spx' %(radius), fontsize = fontsize)
+    plt.xlabel("Time (Julian Date)", fontsize = fontsize)
+    plt.ylabel("Counts per second", fontsize = fontsize)
+    plt.tick_params(axis = 'both', labelsize = fontsize)
+
+    u_counts, u_bin_edges = np.histogram(unique_time, bins = ranges,
+                                         )
+
+    weighted_counts, bin_edges = np.histogram(T, bins = ranges, 
+                                              weights = W)    
+
+    counts, _ = np.histogram(T, bins = ranges)
+
+    bin_centres = (bin_edges[:-1] + bin_edges[1:]) / 2.
+
+    count_mask = counts != 0
+
+    if np.sum(count_mask) != 0:
+        mcentres =  bin_centres[count_mask]
+        weighted_mcounts = weighted_counts[count_mask]
+        mcounts = counts[count_mask]
+        frames_in_bin = u_counts[count_mask]
+    else:
+        print('No counts inside the aperture!')
+
+    CPF = weighted_mcounts / frames_in_bin
+    CPF_err = np.sqrt(mcounts) / frames_in_bin
+    
+    # Background subtraction.
+    CPF = CPF - (bg_CPS / framecount_per_sec)
+    CPF_err = np.sqrt(CPF_err ** 2 + (bg_CPS_e / framecount_per_sec) ** 2)    
+
+    CPF, CPF_err = apply_aperture_correction(CPF, CPF_err, radius, aperture_correction)
+    CPF, CPF_err = apply_saturation_correction(CPF, CPF_err, saturation_correction)
+    
+    CPS = CPF * framecount_per_sec
+    CPS_err = CPF_err * framecount_per_sec
+
+    # Let us get on with the plot. 
+    plt.scatter(mcentres, CPS)
+    plt.errorbar(mcentres, CPS, yerr = CPS_err, linestyle = "None")
+    # To make the plot look good.
+    empty_space = (till_here - time_start) / 25.0
+    plt.xlim(time_start - empty_space, till_here + empty_space)
+
+    #To write the array to output.
+    data_to_output = list(zip(mcentres, CPS, CPS_err))
+    output_prefix = 'curve_' + str(xp) + '_' + str(yp) + '_' + events_list
+    datname = os.path.join(path_to_events_list, output_prefix + '.dat')
+    np.savetxt(datname, data_to_output,
+               fmt = '%10.11f\t%.5e\t%.5e',
+               header = 'MJD\t\t\tCPS\tCPS_error')
+
+    figname = os.path.join(path_to_events_list, output_prefix + '.png')
+    plt.savefig(figname, format = 'png', bbox_inches = 'tight', dpi = 150)
+
+    print('\n-------------------------- curve --------------------------')
+    print('source: {}\n        {}'.format(png_name, source_png))
+    print('data: {}'.format(datname))
+    print('plot: {}'.format(figname))
+
+    print("\nDone!\n")
+    plt.close('all') 
+        
+    
 # Function to convert CCDLAB XYFrac and XYInts to X, Y positions in 4k.
 def CCDLAB_to_4k(Int, Frac):
     coo_in_4k = ((Int + Frac) - 16) / 4.0
