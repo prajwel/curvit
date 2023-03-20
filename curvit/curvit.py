@@ -827,6 +827,7 @@ def curve(events_list = events_list,
         
     Example
     --------
+    >>> import curvit
     >>> curvit.curve(events_list = 'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits.gz', 
     ...              xp = 2636.71, yp = 907.91,
     ...              radius = 15,
@@ -1115,11 +1116,12 @@ def curve_orbitwise(events_list = events_list,
     Most UVIT observations are carried out in 512 x 512 window mode.
         
     Example
-    --------    
-    >>> curve_orbitwise('AS1G05_240T01_9000000674uvtFIIPC00F2_l2ce_all_orbits.fits', 
-    ...                 xp = 1425.26, yp = 1861.78, 
-    ...                 radius = 15,
-    ...                 background = 'auto')    
+    --------   
+    >>> import curvit     
+    >>> curvit.curve_orbitwise('AS1G05_240T01_9000000674uvtFIIPC00F2_l2ce_all_orbits.fits', 
+    ...                         xp = 1425.26, yp = 1861.78, 
+    ...                         radius = 15,
+    ...                         background = 'auto')    
     
     ::
     
