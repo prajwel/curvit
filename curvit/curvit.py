@@ -1017,6 +1017,7 @@ def curve(events_list = events_list,
 
     print("\nDone!\n")
     plt.close('all') 
+ 
     
 def curve_orbitwise(events_list = events_list,
                     xp = xp,
@@ -1224,7 +1225,13 @@ def curve_orbitwise(events_list = events_list,
 
     # Find indices where differences exceed threshold
     boundaries = np.where(diffs > orbit_time_difference)[0] + 1
-
+    
+    starts = np.concatenate([[0], boundaries])
+    ends = np.concatenate([boundaries - 1, [len(unique_time) -1]])
+    
+    starts = unique_time[starts]
+    ends = unique_time[ends]
+    
     # Ranges for numpy histogram. 
     ranges = np.concatenate([[0], boundaries, [len(unique_time) -1]])
     ranges = unique_time[ranges]
@@ -1240,6 +1247,9 @@ def curve_orbitwise(events_list = events_list,
     # time_start = met_to_mjd(time.min())
     unique_time = met_to_mjd(unique_time)
     ranges = met_to_mjd(ranges)
+    
+    starts = met_to_mjd(starts)
+    ends = met_to_mjd(ends)
     
     time_start = ranges[0]
     till_here = ranges[-1]
@@ -1259,7 +1269,7 @@ def curve_orbitwise(events_list = events_list,
 
     counts, _ = np.histogram(T, bins = ranges)
 
-    bin_centres = (bin_edges[:-1] + bin_edges[1:]) / 2.
+    bin_centres = (starts + ends) / 2.
 
     count_mask = counts != 0
 
@@ -1309,12 +1319,13 @@ def curve_orbitwise(events_list = events_list,
 
     print("\nDone!\n")
     plt.close('all') 
-        
+              
     
 # Function to convert CCDLAB XYFrac and XYInts to X, Y positions in 4k.
 def CCDLAB_to_4k(Int, Frac):
     coo_in_4k = ((Int + Frac) - 16) / 4.0
     return coo_in_4k
+    
     
 # Function to convert CCDLAB files to a compatible events list.     
 def process_ccdlab(output = None,

@@ -6,6 +6,12 @@ Changelog
     If you have an older version, please upgrade::
     
         pip install curvit --upgrade
+        
+1.6.1
+-----
+Bug fix: Corrected slightly inaccurate MJD values for orbitwise data points in 
+:doc:`/api/curve_orbitwise` function.
+
 
 1.6.0
 -----
