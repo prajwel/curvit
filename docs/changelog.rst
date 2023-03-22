@@ -12,7 +12,6 @@ Changelog
 Bug fix: Corrected slightly inaccurate MJD values for orbitwise data points in 
 :doc:`/api/curve_orbitwise` function.
 
-
 1.6.0
 -----
 Added :doc:`/api/curve_orbitwise` function to create a light curve for a 

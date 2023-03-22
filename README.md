@@ -20,6 +20,10 @@ Curvit is on the Python Package Index (PyPI) and you can install the package usi
 pip install curvit --user
 ```
 
+## Report bugs and contribute
+
+If you come across any bugs or mistakes, please report them on the GitHub issue tracker. If you have a solution or a new feature in mind, we welcome you to submit a pull request! Your contributions are greatly appreciated in making Curvit even better.
+
 
 
 
