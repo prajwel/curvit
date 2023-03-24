@@ -6,7 +6,12 @@ Changelog
     If you have an older version, please upgrade::
     
         pip install curvit --upgrade
-        
+
+1.6.2
+-----
+An internal function that estimates the weighted centroid of all events have 
+been improved.
+
 1.6.1
 -----
 Bug fix: Corrected slightly inaccurate MJD values for orbitwise data points in 

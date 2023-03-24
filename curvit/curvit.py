@@ -36,6 +36,7 @@ from collections import Counter
 from scipy.ndimage import zoom
 from scipy.spatial import KDTree
 from scipy.interpolate import interp1d
+from scipy.stats import median_abs_deviation
 from matplotlib.colors import LogNorm
 from photutils.detection import DAOStarFinder
 from photutils.aperture import CircularAperture
@@ -137,10 +138,25 @@ AstrometryNet_API_key = 'ujmrvwqqyelxmzcj'
 #######################################################################
 
 
-def weighted_centre(x_coords, y_coords, weights):
-    weighted_x = np.sum(np.array(x_coords) * np.array(weights)) / np.sum(weights)
-    weighted_y = np.sum(np.array(y_coords) * np.array(weights)) / np.sum(weights)
+def weighted_centre(x_coords = None, 
+                    y_coords = None, 
+                    weights = None, 
+                    bins = 600):
+    
+    x_array, x_bin_edges = np.histogram(x_coords, bins = bins, weights = weights)
+    y_array, y_bin_edges = np.histogram(y_coords, bins = bins, weights = weights)
+
+    x_array_mask = x_array > median_abs_deviation(x_array)
+    y_array_mask = y_array > median_abs_deviation(y_array)
+
+    x_bin_centres = (x_bin_edges[:-1] + x_bin_edges[1:]) / 2
+    y_bin_centres = (y_bin_edges[:-1] + y_bin_edges[1:]) / 2
+    
+    weighted_x = np.sum(x_bin_centres * x_array_mask) / np.sum(x_array_mask)
+    weighted_y = np.sum(y_bin_centres * y_array_mask) / np.sum(y_array_mask)
+    
     return (weighted_x, weighted_y)
+
 
 def read_columns(events_list):
     # Reading few columns.
@@ -157,6 +173,7 @@ def read_columns(events_list):
     fy = fy[mask]
     photons = photons[mask]
     return time, fx, fy, photons
+
 
 def tobe_or_notobe(time, bwidth, 
                    detection_method,
