@@ -225,12 +225,14 @@ def tobe_or_notobe(time, bwidth,
             sanity = 0 
     return int(sanity) 
 
+
 def modify_string(events_list):
     if events_list[-5:] == '.fits':
         events_list = events_list[:-5]
     if events_list[-8:] == '.fits.gz':
         events_list = events_list[:-8]
     return events_list
+
 
 # To automatically choose background region.
 def auto_bg(fx, fy, time, photons, radius, framecount_per_sec, sky_radius): 
@@ -272,6 +274,7 @@ def auto_bg(fx, fy, time, photons, radius, framecount_per_sec, sky_radius):
     bg_CPS_e = np.mean(bg_CPS_e_sample[bg_CPS_mask])
     return lowres_counts, bg_CPS, bg_CPS_e   
     
+    
 # To estimate background CPS.
 def bg_estimate(fx, fy, time, photons, framecount_per_sec, radius, x_bg, y_bg, sky_radius):
 
@@ -292,6 +295,7 @@ def bg_estimate(fx, fy, time, photons, framecount_per_sec, radius, x_bg, y_bg, s
     bg_CPS = (scaled_events * framecount_per_sec) / Number_of_frames
     bg_CPS_e = (scaled_events_e * framecount_per_sec) / Number_of_frames
     return bg_CPS, bg_CPS_e
+
 
 # To create subset images. 
 def create_sub_image(pos_x, pos_y, 
@@ -317,6 +321,7 @@ def create_sub_image(pos_x, pos_y,
     plt.savefig(source_png_name, format = 'png', bbox_inches = 'tight')
     plt.clf()
     return source_png_name  
+
 
 # To find positions of interest (using daofind algorithm).
 def detect_sources_daofind(fx, fy, photons, threshold):
@@ -350,6 +355,7 @@ def detect_sources_daofind(fx, fy, photons, threshold):
     uA = np.round(uA, 2)
     return uA
 
+
 # To find positions of interest (positions with maximum events).
 def detect_sources_kdtree(fx, fy, how_many):
     fxi = [int(round(s)) for s in fx]
@@ -375,6 +381,7 @@ def detect_sources_kdtree(fx, fy, how_many):
         uA = uA[mask]
     return uA
 
+
 def get_counts(fx, fy, time, photons, framecount_per_sec, xp, yp, radius):
 
     weights = photons / framecount_per_sec    
@@ -390,11 +397,13 @@ def get_counts(fx, fy, time, photons, framecount_per_sec, xp, yp, radius):
     CPF_err = np.sqrt(len(T)) / Number_of_frames
     return CPF, CPF_err
 
+
 # To change mission elapsed time in seconds to modified julian date.
 def met_to_mjd(met):
     jan2010 = 55197.0  # 2010.0(UTC) expressed with MJD format and scale UTC.
     mjd = (met / 86400.0) + jan2010  # 1 julian day = 86400 seconds.
     return mjd
+
 
 def apply_aperture_correction(CPF, CPF_err, radius, aperture_correction): 
     if aperture_correction == 'fuv':
@@ -405,26 +414,26 @@ def apply_aperture_correction(CPF, CPF_err, radius, aperture_correction):
         CPF_err = CPF_err / nuv_ratio_function(radius)
     return CPF, CPF_err
     
-def apply_saturation_correction(CPF5, CPF5_err, saturation_correction):
     
-    if saturation_correction == True:
-        
-        if np.sum(CPF5 >= 0.6) != 0:
-            print("\nCounts per frame exeeds 0.6; saturation correction cannot be applied")
-            return
-        
-        ICPF5 = -1 * np.log(1 - CPF5)
-        ICPF5_err = CPF5_err / CPF5
-        
-        ICORR = ICPF5 - CPF5
-        ICORR_err = np.sqrt((ICPF5_err ** 2) + (CPF5_err ** 2))
-        
-        RCORR = ICORR * (0.89 - (0.30 * (ICORR ** 2)))
-        RCORR_err = RCORR * np.sqrt((ICORR_err ** 2) + ((0.30 * 2 * ICORR * ICORR_err) ** 2))
-        
-        CPF5 = CPF5 + RCORR
-        CPF5_err = np.sqrt((CPF5_err ** 2) + (RCORR_err ** 2))       
+def apply_saturation_correction(CPF5, CPF5_err):
+            
+    if np.sum(CPF5 >= 0.6) != 0:
+        print("\nCounts per frame exeeds 0.6; saturation correction cannot be applied")
+        return
+
+    ICPF5 = -1 * np.log(1 - CPF5)
+    ICPF5_err = CPF5_err / CPF5
+
+    ICORR = ICPF5 - CPF5
+    ICORR_err = np.sqrt((ICPF5_err ** 2) + (CPF5_err ** 2))
+
+    RCORR = ICORR * (0.89 - (0.30 * (ICORR ** 2)))
+    RCORR_err = RCORR * np.sqrt((ICORR_err ** 2) + ((0.30 * 2 * ICORR * ICORR_err) ** 2))
+
+    CPF5 = CPF5 + RCORR
+    CPF5_err = np.sqrt((CPF5_err ** 2) + (RCORR_err ** 2))       
     return CPF5, CPF5_err  
+    
     
 def makecurves(events_list = events_list,
                radius = radius,
@@ -527,7 +536,8 @@ def makecurves(events_list = events_list,
     saturation_correction : bool, optional
         If `True`, saturation correction is applied. 
         The default value is `False`. 
-
+        Note that aperture correction should be applied if you apply
+        saturation correction.         
 
     Note
     ---- 
@@ -713,9 +723,18 @@ def makecurves(events_list = events_list,
         CPF = CPF - (bg_CPS / framecount_per_sec)
         CPF_err = np.sqrt(CPF_err ** 2 + (bg_CPS_e / framecount_per_sec) ** 2)   
 
-        CPF, CPF_err = apply_aperture_correction(CPF, CPF_err, radius, aperture_correction)
-        CPF, CPF_err = apply_saturation_correction(CPF, CPF_err, saturation_correction)
-
+        if saturation_correction == True:
+            CPF, CPF_err = apply_aperture_correction(mcounts / frames_in_bin, 
+                                                     CPF_err, 
+                                                     radius, 
+                                                     aperture_correction)
+            flat_field_array = weighted_mcounts / mcounts
+            CPF, CPF_err = apply_saturation_correction(CPF, CPF_err)
+            CPF = CPF * flat_field_array
+        else:
+            CPF, CPF_err = apply_aperture_correction(CPF, CPF_err, 
+                                                     radius, 
+                                                     aperture_correction)
         
         CPS = CPF * framecount_per_sec
         CPS_err = CPF_err * framecount_per_sec
@@ -742,6 +761,7 @@ def makecurves(events_list = events_list,
 
     print('\nDone!\n')
     plt.close('all')
+     
         
 def curve(events_list = events_list,
           xp = xp,
@@ -835,7 +855,8 @@ def curve(events_list = events_list,
     saturation_correction : bool, optional
         If `True`, saturation correction is applied. 
         The default value is `False`. 
-
+        Note that aperture correction should be applied if you apply
+        saturation correction. 
 
     Note
     ---- 
@@ -1004,8 +1025,18 @@ def curve(events_list = events_list,
     CPF = CPF - (bg_CPS / framecount_per_sec)
     CPF_err = np.sqrt(CPF_err ** 2 + (bg_CPS_e / framecount_per_sec) ** 2)    
 
-    CPF, CPF_err = apply_aperture_correction(CPF, CPF_err, radius, aperture_correction)
-    CPF, CPF_err = apply_saturation_correction(CPF, CPF_err, saturation_correction)
+    if saturation_correction == True:
+        CPF, CPF_err = apply_aperture_correction(mcounts / frames_in_bin, 
+                                                 CPF_err, 
+                                                 radius, 
+                                                 aperture_correction)
+        flat_field_array = weighted_mcounts / mcounts
+        CPF, CPF_err = apply_saturation_correction(CPF, CPF_err)
+        CPF = CPF * flat_field_array
+    else:
+        CPF, CPF_err = apply_aperture_correction(CPF, CPF_err, 
+                                                 radius, 
+                                                 aperture_correction)
     
     CPS = CPF * framecount_per_sec
     CPS_err = CPF_err * framecount_per_sec
@@ -1126,6 +1157,8 @@ def curve_orbitwise(events_list = events_list,
     saturation_correction : bool, optional
         If `True`, saturation correction is applied. 
         The default value is `False`. 
+        Note that aperture correction should be applied if you apply
+        saturation correction. 
 
     Note
     ---- 
@@ -1147,8 +1180,8 @@ def curve_orbitwise(events_list = events_list,
         -------------------------- curve --------------------------
         source: source_AS1G05_240T01_9000000674uvtFIIPC00F2_l2ce_all_orbits.png
                 source_zoomed_AS1G05_240T01_9000000674uvtFIIPC00F2_l2ce_all_orbits.png
-        data: curve_1425.26_1861.78_AS1G05_240T01_9000000674uvtFIIPC00F2_l2ce_all_orbits.dat
-        plot: curve_1425.26_1861.78_AS1G05_240T01_9000000674uvtFIIPC00F2_l2ce_all_orbits.png
+        data: curve_orbitwise_1425.26_1861.78_AS1G05_240T01_9000000674uvtFIIPC00F2_l2ce_all_orbits.dat
+        plot: curve_orbitwise_1425.26_1861.78_AS1G05_240T01_9000000674uvtFIIPC00F2_l2ce_all_orbits.png
 
         Done!
     """
@@ -1307,8 +1340,18 @@ def curve_orbitwise(events_list = events_list,
     CPF = CPF - (bg_CPS / framecount_per_sec)
     CPF_err = np.sqrt(CPF_err ** 2 + (bg_CPS_e / framecount_per_sec) ** 2)    
 
-    CPF, CPF_err = apply_aperture_correction(CPF, CPF_err, radius, aperture_correction)
-    CPF, CPF_err = apply_saturation_correction(CPF, CPF_err, saturation_correction)
+    if saturation_correction == True:
+        CPF, CPF_err = apply_aperture_correction(mcounts / frames_in_bin, 
+                                                 CPF_err, 
+                                                 radius, 
+                                                 aperture_correction)
+        flat_field_array = weighted_mcounts / mcounts
+        CPF, CPF_err = apply_saturation_correction(CPF, CPF_err)
+        CPF = CPF * flat_field_array
+    else:
+        CPF, CPF_err = apply_aperture_correction(CPF, CPF_err, 
+                                                 radius, 
+                                                 aperture_correction)
     
     CPS = CPF * framecount_per_sec
     CPS_err = CPF_err * framecount_per_sec
@@ -1322,7 +1365,7 @@ def curve_orbitwise(events_list = events_list,
 
     #To write the array to output.
     data_to_output = list(zip(mcentres, CPS, CPS_err))
-    output_prefix = 'curve_' + str(xp) + '_' + str(yp) + '_' + events_list
+    output_prefix = 'curve_orbitwise_' + str(xp) + '_' + str(yp) + '_' + events_list
     datname = os.path.join(path_to_events_list, output_prefix + '.dat')
     np.savetxt(datname, data_to_output,
                fmt = '%10.11f\t%.5e\t%.5e',
@@ -1443,6 +1486,7 @@ def process_ccdlab(output = None,
     tbhdu.writeto(output, overwrite = True) 
     print('The events list: {}'.format(output))  
 
+
 def make_image(events_list = events_list, 
                framecount_per_sec = framecount_per_sec):
 
@@ -1520,12 +1564,14 @@ def make_image(events_list = events_list,
     hdu.writeto(fits_name, overwrite = True)      
     print('The image: {}'.format(fits_name))    
     
+    
 # Remove soon.    
 def makefits(events_list = events_list, 
              ramecount_per_sec = framecount_per_sec):
     print('Deprecated function. Please use make_image instead.')
     return make_image(events_list = events_list, 
                       framecount_per_sec = framecount_per_sec)    
+   
     
 def rebin(arr, bin_factor):
     shape = (int(arr.shape[0] / bin_factor), bin_factor,
@@ -1533,11 +1579,13 @@ def rebin(arr, bin_factor):
     binned_arr = arr.reshape(shape).mean(-1).mean(1)
     return binned_arr
 
+
 def get_image_data(fx, fy, photons, framecount_per_sec):
     weights = photons / framecount_per_sec
     bins = np.arange(0, 4801)
     data, _, _ = np.histogram2d(fy, fx, bins = (bins, bins), weights = weights)
     return data
+
 
 def daofind_on_image_data(data, threshold):
     kernel = Gaussian2DKernel(x_stddev=1.5)
@@ -1560,10 +1608,12 @@ def daofind_on_image_data(data, threshold):
     uA = np.array([sources['xcentroid'].data, sources['ycentroid'].data]).T
     return uA 
 
+
 def new_detect_sources_daofind(fx, fy, photons, threshold, framecount_per_sec):
     data = get_image_data(fx, fy, photons, framecount_per_sec)
     uA = daofind_on_image_data(data, threshold)
     return uA
+
 
 def combine_events_lists(events_lists_paths = None, 
                          threshold = 8,
@@ -1875,6 +1925,7 @@ def combine_events_lists(events_lists_paths = None,
     hdu_base.close()
     print('The combined events list: {}'.format(combined_eventslist_name))    
     print("\nDone!\n")
+   
     
 def image_astrometry(UV_image = None, threshold = 3, API_key = AstrometryNet_API_key):
 

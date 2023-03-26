@@ -7,6 +7,10 @@ Changelog
     
         pip install curvit --upgrade
 
+1.6.3
+-----
+The saturation correction technique has been made more accurate. 
+
 1.6.2
 -----
 An internal function that estimates the weighted centroid of all events have 
