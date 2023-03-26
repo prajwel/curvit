@@ -1374,7 +1374,7 @@ def curve_orbitwise(events_list = events_list,
     figname = os.path.join(path_to_events_list, output_prefix + '.png')
     plt.savefig(figname, format = 'png', bbox_inches = 'tight', dpi = 150)
 
-    print('\n-------------------------- curve --------------------------')
+    print('\n-------------------------- curve_orbitwise --------------------------')
     print('source: {}\n        {}'.format(png_name, source_png))
     print('data: {}'.format(datname))
     print('plot: {}'.format(figname))
