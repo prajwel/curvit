@@ -40,10 +40,9 @@ from scipy.stats import median_abs_deviation
 from matplotlib.colors import LogNorm
 from photutils.detection import DAOStarFinder
 from photutils.aperture import CircularAperture
-from photutils.background import Background2D, MedianBackground
 from astropy.io import fits
 from astropy.convolution import Gaussian2DKernel, convolve
-from astropy.stats import sigma_clipped_stats, gaussian_fwhm_to_sigma, sigma_clip, SigmaClip
+from astropy.stats import sigma_clipped_stats, gaussian_fwhm_to_sigma, sigma_clip
  
 #######################################################################
 # Initial set of parameters.
@@ -1592,22 +1591,20 @@ def daofind_on_image_data(data, threshold):
     binned_data = rebin(data, 2)
     smoothed_data = convolve(binned_data, kernel)
     zoomed_data = zoom(smoothed_data, zoom = 2, order = 0)
-    
-    sigma_clip = SigmaClip(sigma=3.)
-    bkg_estimator = MedianBackground()
-    bkg = Background2D(zoomed_data, (50, 50), filter_size=(3, 3),
-                       sigma_clip=sigma_clip, bkg_estimator=bkg_estimator)
-
-    daofind = DAOStarFinder(fwhm = 4, 
-                            threshold = threshold * bkg.background_rms_median, 
+    for_bkg_binned_data = rebin(zoomed_data, 64)
+    for_bkg_binned_data[for_bkg_binned_data <= 0] = np.nan
+    bkg_median = np.nanmedian(for_bkg_binned_data)
+    bkg_MAD = median_abs_deviation(for_bkg_binned_data, axis = None,
+                                            nan_policy = 'omit')
+                                          
+    daofind = DAOStarFinder(fwhm = 6,
+                            threshold = threshold * bkg_MAD, 
                             exclude_border = True)
     
-    sources = daofind(zoomed_data - bkg.background)    
-    
+    sources = daofind(zoomed_data - bkg_median)    
     sources.sort('mag')
     uA = np.array([sources['xcentroid'].data, sources['ycentroid'].data]).T
     return uA 
-
 
 def new_detect_sources_daofind(fx, fy, photons, threshold, framecount_per_sec):
     data = get_image_data(fx, fy, photons, framecount_per_sec)
