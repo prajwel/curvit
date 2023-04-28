@@ -7,6 +7,11 @@ Changelog
     
         pip install curvit --upgrade
 
+1.6.5
+-----
+Bug fix: Background subtraction was not taking place if 
+``saturation_correction`` was ``True``. 
+
 1.6.4
 -----
 A new parameter, ``time_separation``, has been added to the 

@@ -418,7 +418,13 @@ def apply_aperture_correction(CPF, CPF_err, radius, aperture_correction):
     
     
 def apply_saturation_correction(CPF5, CPF5_err):
-            
+    
+    CPF_original = CPF5
+    CPF5_err_original = CPF5_err
+    
+    CPF5 = CPF5 * 0.97
+    CPF5_err = CPF5_err * 0.97    
+    
     if np.sum(CPF5 >= 0.6) != 0:
         print("\nCounts per frame exeeds 0.6; saturation correction cannot be applied")
         return
@@ -432,9 +438,50 @@ def apply_saturation_correction(CPF5, CPF5_err):
     RCORR = ICORR * (0.89 - (0.30 * (ICORR ** 2)))
     RCORR_err = RCORR * np.sqrt((ICORR_err ** 2) + ((0.30 * 2 * ICORR * ICORR_err) ** 2))
 
-    CPF5 = CPF5 + RCORR
-    CPF5_err = np.sqrt((CPF5_err ** 2) + (RCORR_err ** 2))       
+    CPF5 = CPF_original + RCORR
+    CPF5_err = np.sqrt((CPF5_err_original ** 2) + (RCORR_err ** 2))       
     return CPF5, CPF5_err  
+    
+def compute_CPF(mcounts, frames_in_bin, bg_CPS, bg_CPS_e,
+                weighted_mcounts, saturation_correction,
+                aperture_correction, radius,
+                framecount_per_sec):                      
+                      
+    if saturation_correction == True:
+        if aperture_correction is None:
+            raise ValueError("If saturation_correction parameter is True, "
+                             "then aperture_correction parameter should not be None!")
+
+        CPF = mcounts / frames_in_bin
+        CPF_err = np.sqrt(mcounts) / frames_in_bin
+
+        # Background subtraction.
+        CPF = CPF - (bg_CPS / framecount_per_sec)
+        CPF_err = np.sqrt(CPF_err ** 2 + (bg_CPS_e / framecount_per_sec) ** 2)   
+
+        CPF, CPF_err = apply_aperture_correction(CPF, 
+                                                 CPF_err, 
+                                                 radius, 
+                                                 aperture_correction)
+
+        CPF, CPF_err = apply_saturation_correction(CPF, CPF_err)
+        
+        # Applying flat-field correction.               
+        flat_field_array = weighted_mcounts / mcounts                      
+        CPF = CPF * flat_field_array
+    else:
+        CPF = weighted_mcounts / frames_in_bin
+        CPF_err = np.sqrt(mcounts) / frames_in_bin
+
+        # Background subtraction.
+        CPF = CPF - (bg_CPS / framecount_per_sec)
+        CPF_err = np.sqrt(CPF_err ** 2 + (bg_CPS_e / framecount_per_sec) ** 2)   
+
+        CPF, CPF_err = apply_aperture_correction(CPF, CPF_err, 
+                                                 radius, 
+                                                 aperture_correction)
+                      
+    return CPF, CPF_err
     
     
 def makecurves(events_list = events_list,
@@ -718,25 +765,10 @@ def makecurves(events_list = events_list,
             print('No counts for the source at %s' %uaxy)
             continue
 
-        CPF = weighted_mcounts / frames_in_bin
-        CPF_err = np.sqrt(mcounts) / frames_in_bin
-        
-        # Background subtraction.
-        CPF = CPF - (bg_CPS / framecount_per_sec)
-        CPF_err = np.sqrt(CPF_err ** 2 + (bg_CPS_e / framecount_per_sec) ** 2)   
-
-        if saturation_correction == True:
-            CPF, CPF_err = apply_aperture_correction(mcounts / frames_in_bin, 
-                                                     CPF_err, 
-                                                     radius, 
-                                                     aperture_correction)
-            flat_field_array = weighted_mcounts / mcounts
-            CPF, CPF_err = apply_saturation_correction(CPF, CPF_err)
-            CPF = CPF * flat_field_array
-        else:
-            CPF, CPF_err = apply_aperture_correction(CPF, CPF_err, 
-                                                     radius, 
-                                                     aperture_correction)
+        CPF, CPF_err = compute_CPF(mcounts, frames_in_bin, bg_CPS, bg_CPS_e,
+                                   weighted_mcounts, saturation_correction,
+                                   aperture_correction, radius,
+                                   framecount_per_sec)
         
         CPS = CPF * framecount_per_sec
         CPS_err = CPF_err * framecount_per_sec
@@ -1020,25 +1052,10 @@ def curve(events_list = events_list,
     else:
         print('No counts inside the aperture!')
 
-    CPF = weighted_mcounts / frames_in_bin
-    CPF_err = np.sqrt(mcounts) / frames_in_bin
-    
-    # Background subtraction.
-    CPF = CPF - (bg_CPS / framecount_per_sec)
-    CPF_err = np.sqrt(CPF_err ** 2 + (bg_CPS_e / framecount_per_sec) ** 2)    
-
-    if saturation_correction == True:
-        CPF, CPF_err = apply_aperture_correction(mcounts / frames_in_bin, 
-                                                 CPF_err, 
-                                                 radius, 
-                                                 aperture_correction)
-        flat_field_array = weighted_mcounts / mcounts
-        CPF, CPF_err = apply_saturation_correction(CPF, CPF_err)
-        CPF = CPF * flat_field_array
-    else:
-        CPF, CPF_err = apply_aperture_correction(CPF, CPF_err, 
-                                                 radius, 
-                                                 aperture_correction)
+    CPF, CPF_err = compute_CPF(mcounts, frames_in_bin, bg_CPS, bg_CPS_e,
+                               weighted_mcounts, saturation_correction,
+                               aperture_correction, radius,
+                               framecount_per_sec)
     
     CPS = CPF * framecount_per_sec
     CPS_err = CPF_err * framecount_per_sec
@@ -1335,27 +1352,12 @@ def curve_orbitwise(events_list = events_list,
         mcounts = counts[count_mask]
         frames_in_bin = u_counts[count_mask]
     else:
-        print('No counts inside the aperture!')
+        print('No counts inside the aperture!') 
 
-    CPF = weighted_mcounts / frames_in_bin
-    CPF_err = np.sqrt(mcounts) / frames_in_bin
-    
-    # Background subtraction.
-    CPF = CPF - (bg_CPS / framecount_per_sec)
-    CPF_err = np.sqrt(CPF_err ** 2 + (bg_CPS_e / framecount_per_sec) ** 2)    
-
-    if saturation_correction == True:
-        CPF, CPF_err = apply_aperture_correction(mcounts / frames_in_bin, 
-                                                 CPF_err, 
-                                                 radius, 
-                                                 aperture_correction)
-        flat_field_array = weighted_mcounts / mcounts
-        CPF, CPF_err = apply_saturation_correction(CPF, CPF_err)
-        CPF = CPF * flat_field_array
-    else:
-        CPF, CPF_err = apply_aperture_correction(CPF, CPF_err, 
-                                                 radius, 
-                                                 aperture_correction)
+    CPF, CPF_err = compute_CPF(mcounts, frames_in_bin, bg_CPS, bg_CPS_e,
+                               weighted_mcounts, saturation_correction,
+                               aperture_correction, radius,
+                               framecount_per_sec)
     
     CPS = CPF * framecount_per_sec
     CPS_err = CPF_err * framecount_per_sec
