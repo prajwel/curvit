@@ -7,6 +7,11 @@ Changelog
     
         pip install curvit --upgrade
 
+1.6.4
+-----
+A new parameter, ``time_separation``, has been added to the 
+:doc:`/api/curve_orbitwise` function.
+
 1.6.3
 -----
 The saturation correction technique has been made more accurate. 

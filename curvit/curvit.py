@@ -134,6 +134,9 @@ MIN_MATCHES_FRACTION = 0.01
 
 # For Astrometry.
 AstrometryNet_API_key = 'ujmrvwqqyelxmzcj'  
+
+# For curve_orbitwise
+time_separation = 30 * 60 #seconds
 #######################################################################
 
 
@@ -1071,6 +1074,7 @@ def curve_orbitwise(events_list = events_list,
                     xp = xp,
                     yp = yp,
                     radius = radius,
+                    time_separation = time_separation,
                     framecount_per_sec = framecount_per_sec,
                     background = background,
                     sky_radius = sky_radius,
@@ -1100,7 +1104,11 @@ def curve_orbitwise(events_list = events_list,
         
     radius : float, optional
         The source aperture radius in pixels. 
-        This parameter has a default value of 6.        
+        This parameter has a default value of 6.
+        
+    time_separation : float, optional
+        The time separation in seconds. 
+        This parameter has a default value of 30 * 60 seconds.
         
     framecount_per_sec : float, optional
         The framerate of the observation, with a default value of 28.7185
@@ -1268,14 +1276,11 @@ def curve_orbitwise(events_list = events_list,
     unique_time = np.unique(time)
     unique_time = np.sort(unique_time)
 
-    # Define threshold for time differences (in seconds)
-    orbit_time_difference = 30 * 60 
-
     # Calculate differences between consecutive elements
     diffs = np.diff(unique_time)
 
     # Find indices where differences exceed threshold
-    boundaries = np.where(diffs > orbit_time_difference)[0] + 1
+    boundaries = np.where(diffs > time_separation)[0] + 1
     
     starts = np.concatenate([[0], boundaries])
     ends = np.concatenate([boundaries - 1, [len(unique_time) -1]])
