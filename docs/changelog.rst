@@ -7,6 +7,11 @@ Changelog
     
         pip install curvit --upgrade
 
+1.6.6
+-----
+The events with having a ``FrameCount`` value of 1 are masked. 
+This frame contains bad events. 
+
 1.6.5
 -----
 Bug fix: Background subtraction was not taking place if 

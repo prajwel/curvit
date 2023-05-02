@@ -162,14 +162,17 @@ def weighted_centre(x_coords = None,
 
 def read_columns(events_list):
     # Reading few columns.
-    f = fits.open(events_list)
-    time = f[1].data['MJD_L2']
-    fx = f[1].data['Fx']
-    fy = f[1].data['Fy']
-    photons = f[1].data['EFFECTIVE_NUM_PHOTONS']
-    bad_flag = f[1].data['BAD FLAG']
+    hdu = fits.open(events_list)
+    time = hdu[1].data['MJD_L2']
+    fx = hdu[1].data['Fx']
+    fy = hdu[1].data['Fy']
+    photons = hdu[1].data['EFFECTIVE_NUM_PHOTONS']
+    bad_flag = hdu[1].data['BAD FLAG']
     mask = photons > 0 
     mask = np.logical_and(mask, bad_flag)
+    if 'FrameCount' in hdu[1].data.names:
+        first_frame_mask = hdu[1].data['FrameCount'] != 1
+        mask = np.logical_and(mask, first_frame_mask)
     time = time[mask]
     fx = fx[mask]
     fy = fy[mask]
