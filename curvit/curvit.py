@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 
 
-"""Create light curves from UVIT data. 
+"""Create light curves from UVIT data.
 
 
    Copyright 2019 Prajwel Joseph
-  
+
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
-  
+
        http://www.apache.org/licenses/LICENSE-2.0
-  
+
    Unless required by applicable law or agreed to in writing, software
    distributed under the License is distributed on an "AS IS" BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -48,8 +48,8 @@ from astropy.stats import sigma_clipped_stats, gaussian_fwhm_to_sigma, sigma_cli
 #######################################################################
 # Initial set of parameters.
 
-"""Window size Vs Framecount rate dictionary (approximate). 
-The most accurate way to get the rate would be to take the value 
+"""Window size Vs Framecount rate dictionary (approximate).
+The most accurate way to get the rate would be to take the value
 of (1 / INT_TIME). INT_TIME value can be found from the image header
 window_rate_dict = {'512 x 512': 28.7185,
                     '350 x 350': 61.0,
@@ -77,8 +77,8 @@ yp = None
 
 """The following parameter affects how the background estimation is done.
 The default value is 'None' and no background estimation is carried out.
-If you prefer to manually specify a background region, then give 'manual' 
-as the value. Also, you can provide 'auto' and background region 
+If you prefer to manually specify a background region, then give 'manual'
+as the value. Also, you can provide 'auto' and background region
 will be automatically selected."""
 background = None  # valid inputs are None / 'manual' / 'auto'.
 
@@ -87,7 +87,7 @@ x_bg = None  # background X-coordinate.
 y_bg = None  # background Y-coordinate.
 
 
-"""The following parameters determines whether corrections are 
+"""The following parameters determines whether corrections are
 applied to the CPF. They are aperture-correction and
 saturation-correction."""
 aperture_correction = None  # valid inputs are None / 'fuv' / 'nuv'.
@@ -256,7 +256,7 @@ def tobe_or_notobe(
         print('\nInvalid input for "saturation_correction" parameter.\n')
         sanity = 0
 
-    if aperture_correction != None:
+    if aperture_correction is not None:
         if 1.5 <= radius <= 95:
             pass
         else:
@@ -491,7 +491,7 @@ def compute_CPF(
     radius,
     framecount_per_sec,
 ):
-    if saturation_correction == True:
+    if saturation_correction is True:
         if aperture_correction is None:
             raise ValueError(
                 "If saturation_correction parameter is True, "
@@ -683,7 +683,6 @@ def makecurves(
     if sanity < 1:
         return
 
-    original_input = events_list
     path_to_events_list, events_list = ntpath.split(events_list)
     events_list = modify_string(events_list)
 
@@ -733,7 +732,7 @@ def makecurves(
 
     print("Detected sources are plotted in the image:\n* {}".format(png_name))
 
-    if background != None:
+    if background is not None:
         if background == "auto":
             print(
                 "\nThe estimated background CPS = {:.5f} +/-{:.5f}".format(
@@ -820,7 +819,7 @@ def makecurves(
 
         bin_centres = (bin_edges[:-1] + bin_edges[1:]) / 2.0
 
-        if np.array_equal(bin_edges, u_bin_edges) == True:
+        if np.array_equal(bin_edges, u_bin_edges) is True:
             count_mask = counts != 0
         else:
             print("\nThis happens when bwidth is too small\n")
@@ -1068,7 +1067,7 @@ def curve(
         events_list,
     )
 
-    if background != None:
+    if background is not None:
         if background == "auto":
             print(
                 "\nThe estimated background CPS = {:.5f} +/-{:.5f}".format(
@@ -1146,7 +1145,7 @@ def curve(
 
     bin_centres = (bin_edges[:-1] + bin_edges[1:]) / 2.0
 
-    if np.array_equal(bin_edges, u_bin_edges) == True:
+    if np.array_equal(bin_edges, u_bin_edges) is True:
         count_mask = counts != 0
     else:
         print("\nThis happens when bwidth is too small\n")
@@ -1397,7 +1396,7 @@ def curve_orbitwise(
         events_list,
     )
 
-    if background != None:
+    if background is not None:
         if background == "auto":
             print(
                 "\nThe estimated background CPS = {:.5f} +/-{:.5f}".format(
