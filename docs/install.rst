@@ -20,12 +20,13 @@ Curvit has the following requirements. If you have an older version of Python an
 .. _Anaconda Distribution: https://www.anaconda.com/products/individual
 
 * Python 3.6 or later
-* Astroalign
+* Aafitrans
 * Astropy
 * Astroquery
 * Matplotlib
 * Numpy
 * Photutils
 * Scipy
+* Scikit-image
 
 

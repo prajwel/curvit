@@ -7,6 +7,15 @@ Changelog
     
         pip install curvit --upgrade
 
+1.6.7
+-----
+Replaced the Astroalign package with the Aafitrans package; this change only 
+affects the :doc:`/api/combine_events_lists` function.
+:doc:`/api/combine_events_lists` function parameters ``NUM_NEAREST_NEIGHBORS`` 
+and ``MIN_MATCHES_FRACTION`` have been removed. 
+Three new parameters have been added to the :doc:`/api/combine_events_lists` 
+function: ``num_nearest_neighbors``, ``min_matches``, and ``pixel_tolerance``.
+
 1.6.6
 -----
 The events with having a ``FrameCount`` value of 1 are masked. 
