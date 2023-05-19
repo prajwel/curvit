@@ -29,7 +29,6 @@ import sys
 import ntpath
 import random
 import numpy as np
-import astroalign as aa
 import matplotlib.pyplot as plt
 
 from glob import glob
@@ -162,9 +161,10 @@ shift_algorithm = "multiple_star"  # 'single_star' or 'multiple_star'.
 
 min_exptime = 30  # will ignore orbits with exptimes below limit.
 
-# Astroalign defaults.
-NUM_NEAREST_NEIGHBORS = 8
-MIN_MATCHES_FRACTION = 0.01
+# Aafitrans defaults.
+num_nearest_neighbors = 8
+min_matches = 1
+pixel_tolerance = 2
 
 # For Astrometry.
 AstrometryNet_API_key = "ujmrvwqqyelxmzcj"
@@ -1778,8 +1778,9 @@ def new_detect_sources_daofind(fx, fy, photons, threshold, framecount_per_sec):
 def combine_events_lists(
     events_lists_paths=None,
     threshold=8,
-    NUM_NEAREST_NEIGHBORS=NUM_NEAREST_NEIGHBORS,
-    MIN_MATCHES_FRACTION=MIN_MATCHES_FRACTION,
+    num_nearest_neighbors=num_nearest_neighbors,
+    min_matches=min_matches,
+    pixel_tolerance=pixel_tolerance,
     minimum_detections=3,
     maximum_detections=100,
     shift_algorithm=shift_algorithm,
@@ -1797,13 +1798,19 @@ def combine_events_lists(
         The threshold parameter associated with the source detection method.
         The default value is 8.
 
-    NUM_NEAREST_NEIGHBORS : int, optional
-        See https://astroalign.quatrope.org/en/latest/api.html#astroalign.NUM_NEAREST_NEIGHBORS
-        for details. The default value is 8. Only relevant for ``'multiple_star'`` method.
+    num_nearest_neighbors : int, optional
+        The number of nearest neighbors of a given star (including itself)
+        to construct the triangle invariants for matching.
+        The default value is 8. Only relevant for ``'multiple_star'`` method.
 
-    MIN_MATCHES_FRACTION : float, optional
-        See https://astroalign.quatrope.org/en/latest/api.html#astroalign.MIN_MATCHES_FRACTION
-        for details. The default value is 0.01. Only relevant for ``'multiple_star'`` method.
+    min_matches : int, optional
+        The minimum number of triangle matches to be found. A value of 1
+        refers to 1 triangle, corresponding to 3 pairs of coordinates.
+        The default value is 1. Only relevant for ``'multiple_star'`` method.
+
+    pixel_tolerance : int, optional
+        The maximum residual error for matches.
+        The default value is 2. Only relevant for ``'multiple_star'`` method.
 
     minimum_detections : int, optional
         The minimum number of sources to be detected. The threshold will be
@@ -1837,7 +1844,7 @@ def combine_events_lists(
 
     Note
     ----
-    Please also cite the Astroalign package if you are using this function.
+    Please cite the Astroalign article if you are using this function.
 
     Example
     --------
@@ -1846,10 +1853,8 @@ def combine_events_lists(
     >>> file_path_list = glob('*/*/*/RAS_VIS/*/F*/*F1*ce*')
     >>> curvit.combine_events_lists(file_path_list)
     """
-
-    aa.NUM_NEAREST_NEIGHBORS = NUM_NEAREST_NEIGHBORS
-    aa.MIN_MATCHES_FRACTION = MIN_MATCHES_FRACTION
-    aa.PIXEL_TOL = 2
+    from skimage.transform import matrix_transform
+    from aafitrans import find_transform, MaxIterError
 
     if shift_algorithm not in ["single_star", "multiple_star"]:
         print('\nInvalid input for "shift_algorithm" parameter.\n')
@@ -1930,8 +1935,17 @@ def combine_events_lists(
         i = 0
         for elist, path in zip(detected_sources, select_events_lists_paths):
             try:
-                transf, (source_list, target_list) = aa.find_transform(
-                    elist, reference, max_control_points=100
+                transf, (source_list, target_list) = find_transform(
+                    elist,
+                    reference,
+                    max_control_points=100,
+                    pixel_tolerance=pixel_tolerance,
+                    min_matches=min_matches,
+                    num_nearest_neighbors=num_nearest_neighbors,
+                    kdtree_search_radius=0.02,
+                    ttype="similarity",
+                    get_best_fit=True,
+                    seed=1,
                 )
 
                 img_path = ntpath.split(path)[0] + "/*I_l2img*"
@@ -1964,9 +1978,7 @@ def combine_events_lists(
                     X_and_Y = np.array(
                         [hdu_base[1].data["Fx"], hdu_base[1].data["Fy"]]
                     ).T
-                    X_centroid, Y_centroid = aa.matrix_transform(
-                        X_and_Y, transf.params
-                    ).T
+                    X_centroid, Y_centroid = matrix_transform(X_and_Y, transf.params).T
 
                     hdu_base[1].data["Fx"] = X_centroid
                     hdu_base[1].data["Fy"] = Y_centroid
@@ -1995,9 +2007,7 @@ def combine_events_lists(
                     nrows = nrows_base + nrows_add
 
                     X_and_Y = np.array([hdu_add[1].data["Fx"], hdu_add[1].data["Fy"]]).T
-                    X_centroid, Y_centroid = aa.matrix_transform(
-                        X_and_Y, transf.params
-                    ).T
+                    X_centroid, Y_centroid = matrix_transform(X_and_Y, transf.params).T
 
                     hdu_add[1].data["Fx"] = X_centroid
                     hdu_add[1].data["Fy"] = Y_centroid
@@ -2016,7 +2026,7 @@ def combine_events_lists(
                 i = i + 1
                 print("coordinate matching successful for {}".format(path))
 
-            except aa.MaxIterError:
+            except MaxIterError:
                 print("coordinate matching failed for {}".format(path))
 
     if shift_algorithm == "single_star":
