@@ -163,7 +163,7 @@ min_exptime = 30  # will ignore orbits with exptimes below limit.
 
 # Aafitrans defaults.
 num_nearest_neighbors = 8
-min_matches = 1
+min_matches = 4
 pixel_tolerance = 2
 
 # For Astrometry.
@@ -1806,7 +1806,7 @@ def combine_events_lists(
     min_matches : int, optional
         The minimum number of triangle matches to be found. A value of 1
         refers to 1 triangle, corresponding to 3 pairs of coordinates.
-        The default value is 1. Only relevant for ``'multiple_star'`` method.
+        The default value is 4. Only relevant for ``'multiple_star'`` method.
 
     pixel_tolerance : int, optional
         The maximum residual error for matches.
@@ -1895,7 +1895,7 @@ def combine_events_lists(
                 uA = new_detect_sources_daofind(
                     fx, fy, photons, threshold, framecount_per_sec
                 )
-                threshold = 2 * threshold
+                threshold = 1.5 * threshold
                 if threshold >= 1e20:
                     print("If you see this, please contact Curvit developer.")
                     break
@@ -1912,7 +1912,7 @@ def combine_events_lists(
                 uA = new_detect_sources_daofind(
                     fx, fy, photons, threshold, framecount_per_sec
                 )
-                threshold = 2 * threshold
+                threshold = 1.5 * threshold
                 if threshold >= 1e20:
                     print("If you see this, please contact Curvit developer.")
                     break
