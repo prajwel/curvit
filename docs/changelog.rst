@@ -7,6 +7,10 @@ Changelog
     
         pip install curvit --upgrade
 
+1.6.8
+-----
+The default value of the `min_matches` parameter was changed to 4 from 1.
+
 1.6.7
 -----
 Replaced the Astroalign package with the Aafitrans package; this change only 
