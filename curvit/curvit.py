@@ -91,7 +91,7 @@ applied to the CPF. They are aperture-correction and
 saturation-correction."""
 aperture_correction = None  # valid inputs are None / 'fuv' / 'nuv'.
 saturation_correction = False  # True or False.
-
+ZEF_correction_factor = 1  # 1 when no frames are present with zero events.
 
 # Following parameters need not be changed (unless you want to).
 whole_figure_resolution = 256  # resolution of full figure.
@@ -274,7 +274,9 @@ def modify_string(events_list):
 
 
 # To automatically choose background region.
-def auto_bg(fx, fy, time, photons, radius, framecount_per_sec, sky_radius):
+def auto_bg(
+    fx, fy, time, photons, radius, framecount_per_sec, sky_radius, ZEF_correction_factor
+):
     weights = photons / framecount_per_sec
     bins = np.arange(0, 4801, 16)
     lowres_counts, lowres_xedges, lowres_yedges = np.histogram2d(
@@ -303,7 +305,16 @@ def auto_bg(fx, fy, time, photons, radius, framecount_per_sec, sky_radius):
     for d in range(sample_size):
         r_count, x_bg, y_bg = random.choice(polished_array[bg_mask])
         bg_CPS, bg_CPS_e = bg_estimate(
-            fx, fy, time, photons, framecount_per_sec, radius, x_bg, y_bg, sky_radius
+            fx,
+            fy,
+            time,
+            photons,
+            framecount_per_sec,
+            radius,
+            x_bg,
+            y_bg,
+            sky_radius,
+            ZEF_correction_factor,
         )
         bg_CPS_sample.append(bg_CPS)
         bg_CPS_e_sample.append(bg_CPS_e)
@@ -319,7 +330,16 @@ def auto_bg(fx, fy, time, photons, radius, framecount_per_sec, sky_radius):
 
 # To estimate background CPS.
 def bg_estimate(
-    fx, fy, time, photons, framecount_per_sec, radius, x_bg, y_bg, sky_radius
+    fx,
+    fy,
+    time,
+    photons,
+    framecount_per_sec,
+    radius,
+    x_bg,
+    y_bg,
+    sky_radius,
+    ZEF_correction_factor,
 ):
     weights = photons / framecount_per_sec
     mask = ((fx - x_bg) ** 2 + (fy - y_bg) ** 2) <= sky_radius**2
@@ -334,7 +354,7 @@ def bg_estimate(
         scaled_events_e = 0
 
     unique_time = np.unique(time)
-    Number_of_frames = float(len(unique_time))
+    Number_of_frames = ZEF_correction_factor * len(unique_time)
     bg_CPS = (scaled_events * framecount_per_sec) / Number_of_frames
     bg_CPS_e = (scaled_events_e * framecount_per_sec) / Number_of_frames
     return bg_CPS, bg_CPS_e
@@ -488,9 +508,11 @@ def compute_CPF(
     weighted_mcounts,
     saturation_correction,
     aperture_correction,
+    ZEF_correction_factor,
     radius,
     framecount_per_sec,
 ):
+    frames_in_bin = ZEF_correction_factor * frames_in_bin
     if saturation_correction is True:
         if aperture_correction is None:
             raise ValueError(
@@ -543,6 +565,7 @@ def makecurves(
     y_bg=y_bg,
     aperture_correction=aperture_correction,
     saturation_correction=saturation_correction,
+    ZEF_correction_factor=ZEF_correction_factor,
     whole_figure_resolution=whole_figure_resolution,
     sub_fig_size=sub_fig_size,
     fontsize=fontsize,
@@ -634,6 +657,10 @@ def makecurves(
         Note that aperture correction should be applied if you apply
         saturation correction.
 
+    ZEF_correction_factor : float, optional
+        To apply the correction for zero event frames.
+        The default value is 1 (no correction).
+
     Note
     ----
     It is essential to set the correct value of the framerate.
@@ -703,7 +730,14 @@ def makecurves(
     plt.figure(figsize=(10.5, 10))
     if background == "auto":
         lowres_counts, bg_CPS, bg_CPS_e = auto_bg(
-            fx, fy, time, photons, radius, framecount_per_sec, sky_radius
+            fx,
+            fy,
+            time,
+            photons,
+            radius,
+            framecount_per_sec,
+            sky_radius,
+            ZEF_correction_factor,
         )
 
     # To create a quick look figure marking sources and background.
@@ -751,6 +785,7 @@ def makecurves(
                 x_bg,
                 y_bg,
                 sky_radius,
+                ZEF_correction_factor,
             )
             bg_png = create_sub_image(
                 x_bg,
@@ -842,6 +877,7 @@ def makecurves(
             weighted_mcounts,
             saturation_correction,
             aperture_correction,
+            ZEF_correction_factor,
             radius,
             framecount_per_sec,
         )
@@ -889,6 +925,7 @@ def curve(
     y_bg=y_bg,
     aperture_correction=aperture_correction,
     saturation_correction=saturation_correction,
+    ZEF_correction_factor=ZEF_correction_factor,
     whole_figure_resolution=whole_figure_resolution,
     sub_fig_size=sub_fig_size,
     fontsize=fontsize,
@@ -971,6 +1008,10 @@ def curve(
         Note that aperture correction should be applied if you apply
         saturation correction.
 
+    ZEF_correction_factor : float, optional
+        To apply the correction for zero event frames.
+        The default value is 1 (no correction).
+
     Note
     ----
     It is essential to set the correct value of the framerate.
@@ -1029,7 +1070,14 @@ def curve(
     plt.figure(figsize=(10.5, 10))
     if background == "auto":
         lowres_counts, bg_CPS, bg_CPS_e = auto_bg(
-            fx, fy, time, photons, radius, framecount_per_sec, sky_radius
+            fx,
+            fy,
+            time,
+            photons,
+            radius,
+            framecount_per_sec,
+            sky_radius,
+            ZEF_correction_factor,
         )
 
     # To create a quick look figure marking sources and background.
@@ -1086,6 +1134,7 @@ def curve(
                 x_bg,
                 y_bg,
                 sky_radius,
+                ZEF_correction_factor,
             )
             bg_png = create_sub_image(
                 x_bg,
@@ -1167,6 +1216,7 @@ def curve(
         weighted_mcounts,
         saturation_correction,
         aperture_correction,
+        ZEF_correction_factor,
         radius,
         framecount_per_sec,
     )
@@ -1217,6 +1267,7 @@ def curve_orbitwise(
     y_bg=y_bg,
     aperture_correction=aperture_correction,
     saturation_correction=saturation_correction,
+    ZEF_correction_factor=ZEF_correction_factor,
     whole_figure_resolution=whole_figure_resolution,
     sub_fig_size=sub_fig_size,
     fontsize=fontsize,
@@ -1302,6 +1353,10 @@ def curve_orbitwise(
         Note that aperture correction should be applied if you apply
         saturation correction.
 
+    ZEF_correction_factor : float, optional
+        To apply the correction for zero event frames.
+        The default value is 1 (no correction).
+
     Note
     ----
     It is essential to set the correct value of the framerate.
@@ -1358,7 +1413,14 @@ def curve_orbitwise(
     plt.figure(figsize=(10.5, 10))
     if background == "auto":
         lowres_counts, bg_CPS, bg_CPS_e = auto_bg(
-            fx, fy, time, photons, radius, framecount_per_sec, sky_radius
+            fx,
+            fy,
+            time,
+            photons,
+            radius,
+            framecount_per_sec,
+            sky_radius,
+            ZEF_correction_factor,
         )
 
     # To create a quick look figure marking sources and background.
@@ -1415,6 +1477,7 @@ def curve_orbitwise(
                 x_bg,
                 y_bg,
                 sky_radius,
+                ZEF_correction_factor,
             )
             bg_png = create_sub_image(
                 x_bg,
@@ -1509,6 +1572,7 @@ def curve_orbitwise(
         weighted_mcounts,
         saturation_correction,
         aperture_correction,
+        ZEF_correction_factor,
         radius,
         framecount_per_sec,
     )

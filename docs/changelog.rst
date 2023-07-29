@@ -7,6 +7,12 @@ Changelog
     
         pip install curvit --upgrade
 
+1.7.0
+-----
+A new parameter, ``ZEF_correction_factor``, has been added to
+:doc:`/api/curve`, :doc:`/api/makecurves`, and
+:doc:`/api/curve_orbitwise` functions.
+
 1.6.8
 -----
 The default value of the `min_matches` parameter was changed to 4 from 1.
