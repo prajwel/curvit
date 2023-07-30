@@ -676,7 +676,7 @@ def makecurves(
 
         Detected source coordinates saved in file:
         * sources_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.coo
-        Detected sources are plotted in the image:
+        Detected sources plotted in the image:
         * sources_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
 
         ---------------------- light curves ----------------------
@@ -764,12 +764,12 @@ def makecurves(
     plt.savefig(png_name, format="png", bbox_inches="tight")
     plt.clf()
 
-    print("Detected sources are plotted in the image:\n* {}".format(png_name))
+    print("Detected sources plotted in the image:\n* {}".format(png_name))
 
     if background is not None:
         if background == "auto":
             print(
-                "\nThe estimated background CPS = {:.5f} +/-{:.5f}".format(
+                "\nBackground CPS (scaled to aperture area): {:.5f} ± {:.5f}".format(
                     bg_CPS, bg_CPS_e
                 )
             )
@@ -799,7 +799,7 @@ def makecurves(
                 events_list,
             )
             print(
-                "\nThe estimated background CPS = {:.5f} +/-{:.5f}".format(
+                "\nBackground CPS (scaled to aperture area): {:.5f} ± {:.5f}".format(
                     bg_CPS, bg_CPS_e
                 )
             )
@@ -1028,7 +1028,7 @@ def curve(
 
     ::
 
-        The estimated background CPS = 0.02155 +/-0.00425
+        Background CPS (scaled to aperture area): 0.02155 ± 0.00425
 
         -------------------------- curve --------------------------
         source: source_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
@@ -1118,7 +1118,7 @@ def curve(
     if background is not None:
         if background == "auto":
             print(
-                "\nThe estimated background CPS = {:.5f} +/-{:.5f}".format(
+                "\nBackground CPS (scaled to aperture area): {:.5f} ± {:.5f}".format(
                     bg_CPS, bg_CPS_e
                 )
             )
@@ -1148,7 +1148,7 @@ def curve(
                 events_list,
             )
             print(
-                "\nThe estimated background CPS = {:.5f} +/-{:.5f}".format(
+                "\nBackground CPS (scaled to aperture area): {:.5f} ± {:.5f}".format(
                     bg_CPS, bg_CPS_e
                 )
             )
@@ -1372,7 +1372,7 @@ def curve_orbitwise(
 
     ::
 
-        The estimated background CPS = 0.01473 +/-0.00073
+        Background CPS (scaled to aperture area): 0.01473 ± 0.00073
 
         -------------------------- curve --------------------------
         source: source_AS1G05_240T01_9000000674uvtFIIPC00F2_l2ce_all_orbits.png
@@ -1461,7 +1461,7 @@ def curve_orbitwise(
     if background is not None:
         if background == "auto":
             print(
-                "\nThe estimated background CPS = {:.5f} +/-{:.5f}".format(
+                "\nBackground CPS (scaled to aperture area): {:.5f} ± {:.5f}".format(
                     bg_CPS, bg_CPS_e
                 )
             )
@@ -1491,7 +1491,7 @@ def curve_orbitwise(
                 events_list,
             )
             print(
-                "\nThe estimated background CPS = {:.5f} +/-{:.5f}".format(
+                "\nBackground CPS (scaled to aperture area): {:.5f} ± {:.5f}".format(
                     bg_CPS, bg_CPS_e
                 )
             )
