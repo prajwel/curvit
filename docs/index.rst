@@ -27,6 +27,7 @@ to create light curves from AstroSat UVIT data.
     api
     report_bugs
     changelog
+    miscellaneous
    
 
 
