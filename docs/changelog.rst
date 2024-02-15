@@ -7,6 +7,11 @@ Changelog
     
         pip install curvit --upgrade
 
+1.7.1
+-----
+The input source coordinates are included in the curve function generated
+``source_*png`` and ``source_zoomed_*png`` filenames.
+
 1.7.0
 -----
 A new parameter, ``ZEF_correction_factor``, has been added to
