@@ -1375,8 +1375,8 @@ def curve_orbitwise(
         Background CPS (scaled to aperture area): 0.01473 ± 0.00073
 
         -------------------------- curve --------------------------
-        source: source_AS1G05_240T01_9000000674uvtFIIPC00F2_l2ce_all_orbits.png
-                source_zoomed_AS1G05_240T01_9000000674uvtFIIPC00F2_l2ce_all_orbits.png
+        source: source_1425.26_1861.78_AS1G05_240T01_9000000674uvtFIIPC00F2_l2ce_all_orbits.png
+                source_1425.26_1861.78_zoomed_AS1G05_240T01_9000000674uvtFIIPC00F2_l2ce_all_orbits.png
         data: curve_orbitwise_1425.26_1861.78_AS1G05_240T01_9000000674uvtFIIPC00F2_l2ce_all_orbits.dat
         plot: curve_orbitwise_1425.26_1861.78_AS1G05_240T01_9000000674uvtFIIPC00F2_l2ce_all_orbits.png
 
@@ -1442,7 +1442,7 @@ def curve_orbitwise(
         bg_circle = plt.Circle((x_bg, y_bg), 100, color="k", fill=False)
         plt.gcf().gca().add_artist(bg_circle)
 
-    png_name = os.path.join(path_to_events_list, "source_" + events_list + ".png")
+    png_name = os.path.join(path_to_events_list, f"source_{xp}_{yp}_{events_list}.png")
     plt.savefig(png_name, format="png", bbox_inches="tight")
     plt.clf()
 
@@ -1451,7 +1451,7 @@ def curve_orbitwise(
         yp,
         sub_fig_size,
         radius,
-        "source_zoomed_",
+        f"source_zoomed_{xp}_{yp}_",
         fx,
         fy,
         path_to_events_list,
