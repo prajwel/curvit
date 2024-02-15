@@ -9,8 +9,9 @@ Changelog
 
 1.7.1
 -----
-The input source coordinates are included in the curve function generated
-``source_*png`` and ``source_zoomed_*png`` filenames.
+The input source coordinates are included in the :doc:`/api/curve` and
+:doc:`/api/curve_orbitwise` functions generated ``source_*png`` and
+``source_zoomed_*png`` filenames.
 
 1.7.0
 -----
