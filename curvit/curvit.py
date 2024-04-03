@@ -842,7 +842,7 @@ def makecurves(
             fontsize=fontsize,
         )
 
-        plt.xlabel("Time (Julian Date)", fontsize=fontsize)
+        plt.xlabel("Time (modified Julian date)", fontsize=fontsize)
         plt.ylabel("Counts per second", fontsize=fontsize)
         plt.tick_params(axis="both", labelsize=fontsize)
 
@@ -1032,7 +1032,7 @@ def curve(
 
         -------------------------- curve --------------------------
         source: source_2636.71_907.91_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
-                source_zoomed__2636.71_907.91_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+                source_zoomed_2636.71_907.91_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
         data: curve_2636.71_907.91_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.dat
         plot: curve_2636.71_907.91_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
 
@@ -1178,7 +1178,7 @@ def curve(
     # Binning stuff, plotting stuff.
     plt.figure(figsize=(8, 5))
     plt.title("bin = %ss, radius = %spx" % (bwidth, radius), fontsize=fontsize)
-    plt.xlabel("Time (Julian Date)", fontsize=fontsize)
+    plt.xlabel("Time (modified Julian Date)", fontsize=fontsize)
     plt.ylabel("Counts per second", fontsize=fontsize)
     plt.tick_params(axis="both", labelsize=fontsize)
 
@@ -1539,7 +1539,7 @@ def curve_orbitwise(
     # Binning stuff, plotting stuff.
     plt.figure(figsize=(8, 5))
     plt.title("radius = %spx" % (radius), fontsize=fontsize)
-    plt.xlabel("Time (Julian Date)", fontsize=fontsize)
+    plt.xlabel("Time (modified Julian Date)", fontsize=fontsize)
     plt.ylabel("Counts per second", fontsize=fontsize)
     plt.tick_params(axis="both", labelsize=fontsize)
 
