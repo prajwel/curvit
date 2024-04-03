@@ -374,6 +374,7 @@ def create_sub_image(
     obj_circle = plt.Circle((pos_x, pos_y), cir_rad, color="k", fill=False)
 
     plt.hist2d(obj_fx, obj_fy, bins=sub_size * 2, norm=LogNorm())
+    plt.title("radius = %spx" % (cir_rad), fontsize=15)
     plt.gcf().gca().add_artist(obj_circle)
     source_png_name = os.path.join(path_to_events_list, sub_name + events_list + ".png")
     plt.savefig(source_png_name, format="png", bbox_inches="tight")
