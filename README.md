@@ -8,7 +8,7 @@
 ### **Curvit documention is at https://curvit.readthedocs.io**
 
 
-Curvit is an open-source python package to generate light curves from UVIT (Ultraviolet Imaging Telescope) data.  
+Curvit is an open-source python package to generate light curves from UVIT (Ultraviolet Imaging Telescope) data.
 
 The software paper manuscript is accessible at https://arxiv.org/abs/2101.06377
 

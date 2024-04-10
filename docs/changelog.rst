@@ -7,6 +7,12 @@ Changelog
     
         pip install curvit --upgrade
 
+1.7.2
+-----
+The aperture radius is mentioned in the zoomed source images.
+Colour bars are added to the image plots.
+Matplotlib is allowed to use the default backend.
+
 1.7.1
 -----
 The input source coordinates are included in the :doc:`/api/curve` and
