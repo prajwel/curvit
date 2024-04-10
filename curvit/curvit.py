@@ -374,8 +374,12 @@ def create_sub_image(
     obj_circle = plt.Circle((pos_x, pos_y), cir_rad, color="k", fill=False)
 
     plt.hist2d(obj_fx, obj_fy, bins=sub_size * 2, norm=LogNorm())
+    plt.tick_params(axis="both", labelsize=15)
     plt.title("radius = %spx" % (cir_rad), fontsize=15)
     plt.gcf().gca().add_artist(obj_circle)
+    cbar = plt.colorbar()
+    cbar.ax.tick_params(labelsize=15)
+    cbar.set_label("Counts", fontsize=15)
     source_png_name = os.path.join(path_to_events_list, sub_name + events_list + ".png")
     plt.savefig(source_png_name, format="png", bbox_inches="tight")
     plt.clf()
@@ -728,7 +732,7 @@ def makecurves(
     print("\nDetected source coordinates saved in file:\n* {}".format(coo_file))
 
     # To automatically choose background region.
-    plt.figure(figsize=(10.5, 10))
+    plt.figure(figsize=(12.5, 10))
     if background == "auto":
         lowres_counts, bg_CPS, bg_CPS_e = auto_bg(
             fx,
@@ -744,8 +748,10 @@ def makecurves(
     # To create a quick look figure marking sources and background.
     bins = np.arange(0, 4801, 4096 / whole_figure_resolution)
     plt.hist2d(fx, fy, bins=(bins, bins), weights=weights, norm=LogNorm())
-
-    plt.tick_params(axis="both", labelsize=fontsize)
+    plt.tick_params(axis="both", labelsize=15)
+    cbar = plt.colorbar()
+    cbar.ax.tick_params(labelsize=15)
+    cbar.set_label("Counts", fontsize=15)
 
     for u in uA:
         plt.annotate("Source", u, size=13, color="black", fontweight="bold")
@@ -1068,7 +1074,7 @@ def curve(
     events_list = modify_string(events_list)
 
     # To automatically choose background region.
-    plt.figure(figsize=(10.5, 10))
+    plt.figure(figsize=(12.5, 10))
     if background == "auto":
         lowres_counts, bg_CPS, bg_CPS_e = auto_bg(
             fx,
@@ -1084,8 +1090,10 @@ def curve(
     # To create a quick look figure marking sources and background.
     bins = np.arange(0, 4801, 4096 / whole_figure_resolution)
     plt.hist2d(fx, fy, bins=(bins, bins), weights=weights, norm=LogNorm())
-
-    plt.tick_params(axis="both", labelsize=fontsize)
+    plt.tick_params(axis="both", labelsize=15)
+    cbar = plt.colorbar()
+    cbar.ax.tick_params(labelsize=15)
+    cbar.set_label("Counts", fontsize=15)
 
     plt.annotate("Source", (xp, yp), size=13, color="black", fontweight="bold")
 
@@ -1411,7 +1419,7 @@ def curve_orbitwise(
     events_list = modify_string(events_list)
 
     # To automatically choose background region.
-    plt.figure(figsize=(10.5, 10))
+    plt.figure(figsize=(12.5, 10))
     if background == "auto":
         lowres_counts, bg_CPS, bg_CPS_e = auto_bg(
             fx,
@@ -1427,8 +1435,10 @@ def curve_orbitwise(
     # To create a quick look figure marking sources and background.
     bins = np.arange(0, 4801, 4096 / whole_figure_resolution)
     plt.hist2d(fx, fy, bins=(bins, bins), weights=weights, norm=LogNorm())
-
-    plt.tick_params(axis="both", labelsize=fontsize)
+    plt.tick_params(axis="both", labelsize=15)
+    cbar = plt.colorbar()
+    cbar.ax.tick_params(labelsize=15)
+    cbar.set_label("Counts", fontsize=15)
 
     plt.annotate("Source", (xp, yp), size=13, color="black", fontweight="bold")
 
