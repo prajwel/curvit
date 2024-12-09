@@ -370,7 +370,7 @@ def create_sub_image(
 
     plt.hist2d(obj_fx, obj_fy, bins=sub_size * 2, norm=LogNorm())
     plt.tick_params(axis="both", labelsize=15)
-    plt.title("radius = %spx" % (cir_rad), fontsize=15)
+    plt.title("radius = %s px" % (cir_rad), fontsize=15)
     plt.gcf().gca().add_artist(obj_circle)
     cbar = plt.colorbar()
     cbar.ax.tick_params(labelsize=15)
@@ -840,7 +840,7 @@ def makecurves(
         T = met_to_mjd(T)
 
         plt.title(
-            "X = %s, Y = %s, bin = %ss, radius = %spx" % (xp, yp, bwidth, radius),
+            "X = %s, Y = %s, bin = %ss, radius = %s px" % (xp, yp, bwidth, radius),
             fontsize=fontsize,
         )
 
@@ -1181,7 +1181,7 @@ def curve(
 
     # Binning stuff, plotting stuff.
     plt.figure(figsize=(8, 5))
-    plt.title("bin = %ss, radius = %spx" % (bwidth, radius), fontsize=fontsize)
+    plt.title("bin = %ss, radius = %s px" % (bwidth, radius), fontsize=fontsize)
     plt.xlabel("Time (modified Julian Date)", fontsize=fontsize)
     plt.ylabel("Counts per second", fontsize=fontsize)
     plt.tick_params(axis="both", labelsize=fontsize)
@@ -1544,7 +1544,7 @@ def curve_orbitwise(
 
     # Binning stuff, plotting stuff.
     plt.figure(figsize=(8, 5))
-    plt.title("radius = %spx" % (radius), fontsize=fontsize)
+    plt.title("radius = %s px" % (radius), fontsize=fontsize)
     plt.xlabel("Time (modified Julian Date)", fontsize=fontsize)
     plt.ylabel("Counts per second", fontsize=fontsize)
     plt.tick_params(axis="both", labelsize=fontsize)
