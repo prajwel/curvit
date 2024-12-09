@@ -113,25 +113,23 @@ only in the **instrument coordinate system**.
 .. code:: python
 
     >>> import curvit
-    >>> curvit.makecurves(events_list = 'AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.fits.gz', 
+    >>> curvit.makecurves(events_list = 'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits',
     ...                   threshold = 5)
 
 ::
 
     Detected source coordinates saved in file:
-    * sources_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.coo
-    Detected sources are plotted in the image:
-    * sources_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
+    * sources_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.coo
+    Detected sources plotted in the image:
+    * sources_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
 
     ---------------------- light curves ----------------------
-    * makecurves_3136.64_3651.08_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
-    * makecurves_2530.02_1442.18_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
-    * makecurves_2912.31_3657.17_AS1G06_084T01_9000000710uvtNIIPC00F2_l2ce.png
-    ...
-    ...
+    * makecurves_2558.69_805.94_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+    * makecurves_3789.87_1554.61_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+    * makecurves_3317.21_1784.05_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+    * makecurves_1898.93_3012.59_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
 
     Done!
-
 
 .. IMPORTANT:: 
     The zero-based indexing scheme is used in curvit.
@@ -141,30 +139,32 @@ only in the **instrument coordinate system**.
     For example, the curvit coordinates of (2559, 806) will become
     (2560, 807) in the FITS convention.
 
+|FO Aqr FUV sources marked| |FO Aqr FUV source 1| |FO Aqr FUV source 2| |FO Aqr FUV source 3| |FO Aqr FUV source 4|
+
 ---------
 ``curve``
 ---------
 
-If you know the source coordinates, use the ``curve`` function of curvit 
-to create light curves.
+If you know the instrument coordinates of your source of interest,
+you can use the ``curve`` function in Curvit to create a source light curve.
 
 .. code:: python
 
-    >>> curvit.curve(events_list = 'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits.gz', 
-    ...              xp = 2636.71, yp = 907.91,
+    >>> curvit.curve(events_list = 'AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.fits',
+    ...              xp = 2558.69, yp = 805.94,
     ...              radius = 15,
     ...              bwidth = 50, 
     ...              background = 'auto')
 
 ::
 
-    Background CPS (scaled to aperture area): 0.02113 ± 0.00421
+    Background CPS (scaled to aperture area): 0.02070 ± 0.00417
 
     -------------------------- curve --------------------------
-    source: source_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
-            source_zoomed_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
-    data: curve_2636.71_907.91_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.dat
-    plot: curve_2636.71_907.91_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+    source: source_2558.69_805.94_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+            source_zoomed_2558.69_805.94_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
+    data: curve_2558.69_805.94_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.dat
+    plot: curve_2558.69_805.94_AS1G06_084T01_9000000710uvtFIIPC00F1_l2ce.png
 
     Done!
 
@@ -239,6 +239,9 @@ Parameters common to both ``makecurves`` and ``curve``
    default value is ``False``. If the parameter is set to ``True``,
    saturation correction is applied to the light curve data.
 
+-  **ZEF_correction_factor** - To apply the correction for zero event frames.
+   The default value is 1.
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Parameters only required for ``makecurves``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -260,6 +263,12 @@ Parameters only required for ``curve``
 
 -  **yp** - Y-coordinate of the source.
 
-.. |FO Aqr FUV source| image:: https://i.imgur.com/R5q0K82.png
-.. |FO Aqr FUV zoomed_source| image:: https://i.imgur.com/mTnZG2Y.png
-.. |FO Aqr FUV curve| image:: https://i.imgur.com/3B1zdJI.png
+.. |FO Aqr FUV sources marked| image:: https://i.imgur.com/6iCP3ws.png
+.. |FO Aqr FUV source 1| image:: https://i.imgur.com/OdgLegH.png
+.. |FO Aqr FUV source 2| image:: https://i.imgur.com/uvZ26yo.png
+.. |FO Aqr FUV source 3| image:: https://i.imgur.com/ZBybPS4.png
+.. |FO Aqr FUV source 4| image:: https://i.imgur.com/Z9ChdZW.png
+
+.. |FO Aqr FUV source| image:: https://i.imgur.com/hJBkpSI.png
+.. |FO Aqr FUV zoomed_source| image:: https://i.imgur.com/0mC5cE2.png
+.. |FO Aqr FUV curve| image:: https://i.imgur.com/yY1ehF7.png
