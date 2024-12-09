@@ -659,7 +659,7 @@ def makecurves(
 
     ZEF_correction_factor : float, optional
         To apply the correction for zero event frames.
-        The default value is 1 (no correction).
+        The default value is 1.
 
     Note
     ----
@@ -1012,7 +1012,7 @@ def curve(
 
     ZEF_correction_factor : float, optional
         To apply the correction for zero event frames.
-        The default value is 1 (no correction).
+        The default value is 1.
 
     Note
     ----
@@ -1359,7 +1359,7 @@ def curve_orbitwise(
 
     ZEF_correction_factor : float, optional
         To apply the correction for zero event frames.
-        The default value is 1 (no correction).
+        The default value is 1.
 
     Note
     ----
