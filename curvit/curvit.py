@@ -1071,37 +1071,14 @@ def curve(
     # To automatically choose background region.
     plt.figure(figsize=(12.5, 10))
     if background == "auto":
-        lowres_counts, bg_CPS, bg_CPS_e = auto_bg(
-            fx,
-            fy,
-            time,
-            photons,
-            radius,
-            framecount_per_sec,
-            sky_radius,
-            ZEF_correction_factor,
+        lowres_counts, bg_CPS, bg_CPS_e = setup_auto_background(
+            fx, fy, time, photons, radius, framecount_per_sec, sky_radius, ZEF_correction_factor
         )
 
     # To create a quick look figure marking sources and background.
-    bins = np.arange(0, 4801, 4096 / whole_figure_resolution)
-    plt.hist2d(fx, fy, bins=(bins, bins), weights=weights, norm=LogNorm())
-    plt.tick_params(axis="both", labelsize=15)
-    cbar = plt.colorbar()
-    cbar.ax.tick_params(labelsize=15)
-    cbar.set_label("Counts", fontsize=15)
-
-    plt.annotate("Source", (xp, yp), size=13, color="black", fontweight="bold")
-
-    obj_circle = plt.Circle((xp, yp), 100, color="k", fill=False)
-    plt.gcf().gca().add_artist(obj_circle)
-
-    if background == "manual":
-        plt.annotate(
-            "Background", (x_bg, y_bg), size=13, color="black", fontweight="bold"
-        )
-
-        bg_circle = plt.Circle((x_bg, y_bg), 100, color="k", fill=False)
-        plt.gcf().gca().add_artist(bg_circle)
+    create_quicklook_figure(
+        fx, fy, weights, xp, yp, x_bg, y_bg, background, whole_figure_resolution
+    )
 
     png_name = os.path.join(path_to_events_list, f"source_{xp}_{yp}_{events_list}.png")
     plt.savefig(png_name, format="png", bbox_inches="tight")
@@ -1119,46 +1096,22 @@ def curve(
         events_list,
     )
 
-    if background is not None:
-        if background == "auto":
-            print(
-                "\nBackground CPS (scaled to aperture area): {:.5f} ± {:.5f}".format(
-                    bg_CPS, bg_CPS_e
-                )
-            )
-        if background == "manual":
-            # To estimate Background CPS.
-            bg_CPS, bg_CPS_e = bg_estimate(
-                fx,
-                fy,
-                time,
-                photons,
-                framecount_per_sec,
-                radius,
-                x_bg,
-                y_bg,
-                sky_radius,
-                ZEF_correction_factor,
-            )
-            bg_png = create_sub_image(
-                x_bg,
-                y_bg,
-                sub_fig_size,
-                sky_radius,
-                "background_",
-                fx,
-                fy,
-                path_to_events_list,
-                events_list,
-            )
-            print(
-                "\nBackground CPS (scaled to aperture area): {:.5f} ± {:.5f}".format(
-                    bg_CPS, bg_CPS_e
-                )
-            )
-            print("Region selected for background estimate:\n* {}".format(bg_png))
-    else:
-        bg_CPS, bg_CPS_e = 0, 0
+    bg_CPS, bg_CPS_e = handle_background_estimation(
+        background,
+        fx,
+        fy,
+        time,
+        photons,
+        framecount_per_sec,
+        radius,
+        x_bg,
+        y_bg,
+        sky_radius,
+        ZEF_correction_factor,
+        sub_fig_size,
+        path_to_events_list,
+        events_list,
+    )
 
     # selecting events within a circular region.
     mask = ((fx - xp) ** 2 + (fy - yp) ** 2) <= radius**2
@@ -1416,37 +1369,14 @@ def curve_orbitwise(
     # To automatically choose background region.
     plt.figure(figsize=(12.5, 10))
     if background == "auto":
-        lowres_counts, bg_CPS, bg_CPS_e = auto_bg(
-            fx,
-            fy,
-            time,
-            photons,
-            radius,
-            framecount_per_sec,
-            sky_radius,
-            ZEF_correction_factor,
+        lowres_counts, bg_CPS, bg_CPS_e = setup_auto_background(
+            fx, fy, time, photons, radius, framecount_per_sec, sky_radius, ZEF_correction_factor
         )
 
     # To create a quick look figure marking sources and background.
-    bins = np.arange(0, 4801, 4096 / whole_figure_resolution)
-    plt.hist2d(fx, fy, bins=(bins, bins), weights=weights, norm=LogNorm())
-    plt.tick_params(axis="both", labelsize=15)
-    cbar = plt.colorbar()
-    cbar.ax.tick_params(labelsize=15)
-    cbar.set_label("Counts", fontsize=15)
-
-    plt.annotate("Source", (xp, yp), size=13, color="black", fontweight="bold")
-
-    obj_circle = plt.Circle((xp, yp), 100, color="k", fill=False)
-    plt.gcf().gca().add_artist(obj_circle)
-
-    if background == "manual":
-        plt.annotate(
-            "Background", (x_bg, y_bg), size=13, color="black", fontweight="bold"
-        )
-
-        bg_circle = plt.Circle((x_bg, y_bg), 100, color="k", fill=False)
-        plt.gcf().gca().add_artist(bg_circle)
+    create_quicklook_figure(
+        fx, fy, weights, xp, yp, x_bg, y_bg, background, whole_figure_resolution
+    )
 
     png_name = os.path.join(path_to_events_list, f"source_{xp}_{yp}_{events_list}.png")
     plt.savefig(png_name, format="png", bbox_inches="tight")
@@ -1464,46 +1394,22 @@ def curve_orbitwise(
         events_list,
     )
 
-    if background is not None:
-        if background == "auto":
-            print(
-                "\nBackground CPS (scaled to aperture area): {:.5f} ± {:.5f}".format(
-                    bg_CPS, bg_CPS_e
-                )
-            )
-        if background == "manual":
-            # To estimate Background CPS.
-            bg_CPS, bg_CPS_e = bg_estimate(
-                fx,
-                fy,
-                time,
-                photons,
-                framecount_per_sec,
-                radius,
-                x_bg,
-                y_bg,
-                sky_radius,
-                ZEF_correction_factor,
-            )
-            bg_png = create_sub_image(
-                x_bg,
-                y_bg,
-                sub_fig_size,
-                sky_radius,
-                "background_",
-                fx,
-                fy,
-                path_to_events_list,
-                events_list,
-            )
-            print(
-                "\nBackground CPS (scaled to aperture area): {:.5f} ± {:.5f}".format(
-                    bg_CPS, bg_CPS_e
-                )
-            )
-            print("Region selected for background estimate:\n* {}".format(bg_png))
-    else:
-        bg_CPS, bg_CPS_e = 0, 0
+    bg_CPS, bg_CPS_e = handle_background_estimation(
+        background,
+        fx,
+        fy,
+        time,
+        photons,
+        framecount_per_sec,
+        radius,
+        x_bg,
+        y_bg,
+        sky_radius,
+        ZEF_correction_factor,
+        sub_fig_size,
+        path_to_events_list,
+        events_list,
+    )
 
     unique_time = np.unique(time)
     unique_time = np.sort(unique_time)
@@ -1821,6 +1727,195 @@ def get_image_data(fx, fy, photons, framecount_per_sec):
     return data
 
 
+def adjust_detection_threshold(
+    fx, fy, photons, threshold, framecount_per_sec, minimum_detections, maximum_detections
+):
+    """Adjust detection threshold to meet source count criteria.
+    
+    Returns the list of detected sources (uA) after adjusting the threshold
+    to be within minimum_detections and maximum_detections range.
+    """
+    uA = []
+    # Decrease threshold until we have enough sources
+    while len(uA) <= minimum_detections:
+        uA = new_detect_sources_daofind(
+            fx, fy, photons, threshold, framecount_per_sec
+        )
+        threshold = threshold - 0.5
+        if threshold <= 1:
+            print("If you see this, please contact Curvit developer.")
+            break
+    # Increase threshold if we have too many sources
+    while len(uA) > maximum_detections:
+        uA = new_detect_sources_daofind(
+            fx, fy, photons, threshold, framecount_per_sec
+        )
+        threshold = 1.5 * threshold
+        if threshold >= 1e20:
+            print("If you see this, please contact Curvit developer.")
+            break
+    return uA
+
+
+def get_framerate_from_header(path):
+    """Get framerate from image header or events list header.
+    
+    Returns tuple: (framerate, RA_pointing, DEC_pointing)
+    """
+    img_path = ntpath.split(path)[0] + "/*I_l2img*"
+    eventslist_header = fits.getheader(path)
+    
+    if len(glob(img_path)) == 1:
+        img_hdu = fits.open(glob(img_path)[0])
+        framerate = 1 / img_hdu[0].header["INT_TIME"]
+        RA_pointing = img_hdu[0].header["RA_PNT"]
+        DEC_pointing = img_hdu[0].header["DEC_PNT"]
+    elif "AVGFRMRT" in eventslist_header:
+        framerate = eventslist_header["AVGFRMRT"]
+        RA_pointing = eventslist_header["RA_PNT"]
+        DEC_pointing = eventslist_header["DEC_PNT"]
+    else:
+        print(
+            "Requires exactly one file matching *I_l2img* in directory {}!".format(
+                ntpath.split(path)[0]
+            )
+        )
+        sys.exit()
+    
+    return framerate, RA_pointing, DEC_pointing
+
+
+def setup_auto_background(
+    fx, fy, time, photons, radius, framecount_per_sec, sky_radius, ZEF_correction_factor
+):
+    """Setup automatic background estimation and return results.
+    
+    Returns tuple: (lowres_counts, bg_CPS, bg_CPS_e)
+    """
+    lowres_counts, bg_CPS, bg_CPS_e = auto_bg(
+        fx,
+        fy,
+        time,
+        photons,
+        radius,
+        framecount_per_sec,
+        sky_radius,
+        ZEF_correction_factor,
+    )
+    return lowres_counts, bg_CPS, bg_CPS_e
+
+
+def create_quicklook_figure(
+    fx, fy, weights, xp, yp, x_bg, y_bg, background, whole_figure_resolution
+):
+    """Create a quick look figure marking sources and background.
+    
+    Creates histogram2d with annotations and circles for sources and background.
+    """
+    bins = np.arange(0, 4801, 4096 / whole_figure_resolution)
+    plt.hist2d(fx, fy, bins=(bins, bins), weights=weights, norm=LogNorm())
+    plt.tick_params(axis="both", labelsize=15)
+    cbar = plt.colorbar()
+    cbar.ax.tick_params(labelsize=15)
+    cbar.set_label("Counts", fontsize=15)
+
+    plt.annotate("Source", (xp, yp), size=13, color="black", fontweight="bold")
+    obj_circle = plt.Circle((xp, yp), 100, color="k", fill=False)
+    plt.gcf().gca().add_artist(obj_circle)
+
+    if background == "manual":
+        plt.annotate(
+            "Background", (x_bg, y_bg), size=13, color="black", fontweight="bold"
+        )
+        bg_circle = plt.Circle((x_bg, y_bg), 100, color="k", fill=False)
+        plt.gcf().gca().add_artist(bg_circle)
+
+
+def handle_background_estimation(
+    background,
+    fx,
+    fy,
+    time,
+    photons,
+    framecount_per_sec,
+    radius,
+    x_bg,
+    y_bg,
+    sky_radius,
+    ZEF_correction_factor,
+    sub_fig_size,
+    path_to_events_list,
+    events_list,
+):
+    """Handle background estimation and display for both auto and manual modes.
+    
+    Returns tuple: (bg_CPS, bg_CPS_e)
+    """
+    if background is not None:
+        if background == "auto":
+            _, bg_CPS, bg_CPS_e = setup_auto_background(
+                fx, fy, time, photons, radius, framecount_per_sec, sky_radius, ZEF_correction_factor
+            )
+            print(
+                "\nBackground CPS (scaled to aperture area): {:.5f} ± {:.5f}".format(
+                    bg_CPS, bg_CPS_e
+                )
+            )
+        elif background == "manual":
+            # To estimate Background CPS.
+            bg_CPS, bg_CPS_e = bg_estimate(
+                fx,
+                fy,
+                time,
+                photons,
+                framecount_per_sec,
+                radius,
+                x_bg,
+                y_bg,
+                sky_radius,
+                ZEF_correction_factor,
+            )
+            bg_png = create_sub_image(
+                x_bg,
+                y_bg,
+                sub_fig_size,
+                sky_radius,
+                "background_",
+                fx,
+                fy,
+                path_to_events_list,
+                events_list,
+            )
+            print(
+                "\nBackground CPS (scaled to aperture area): {:.5f} ± {:.5f}".format(
+                    bg_CPS, bg_CPS_e
+                )
+            )
+            print("Region selected for background estimate:\n* {}".format(bg_png))
+    else:
+        bg_CPS, bg_CPS_e = 0, 0
+    
+    return bg_CPS, bg_CPS_e
+
+
+def remove_wcs_header_keys(header):
+    """Remove WCS-related header keys from a FITS header.
+    
+    Removes CTYPE1, CUNIT1, CRPIX1, CDELT1, CRVAL1, CTYPE2, CUNIT2, 
+    CRPIX2, CDELT2, CRVAL2, CROTA2, CROTA1 keys if they exist.
+    """
+    keys_to_remove = [
+        "CTYPE1", "CUNIT1", "CRPIX1", "CDELT1", "CRVAL1",
+        "CTYPE2", "CUNIT2", "CRPIX2", "CDELT2", "CRVAL2",
+        "CROTA2", "CROTA1"
+    ]
+    for key in keys_to_remove:
+        try:
+            header.remove(key)
+        except KeyError:
+            pass
+
+
 def daofind_on_image_data(data, threshold):
     kernel = Gaussian2DKernel(x_stddev=1.5)
     binned_data = rebin(data, 2)
@@ -1951,41 +2046,9 @@ def combine_events_lists(
             continue
 
         # TODO: The following seems like a bad way to do this. Fix it later
-        uA = []
-        if shift_algorithm == "single_star":
-            while len(uA) <= minimum_detections:
-                uA = new_detect_sources_daofind(
-                    fx, fy, photons, threshold, framecount_per_sec
-                )
-                threshold = threshold - 0.5
-                if threshold <= 1:
-                    print("If you see this, please contact Curvit developer.")
-                    break
-            while len(uA) > maximum_detections:
-                uA = new_detect_sources_daofind(
-                    fx, fy, photons, threshold, framecount_per_sec
-                )
-                threshold = 1.5 * threshold
-                if threshold >= 1e20:
-                    print("If you see this, please contact Curvit developer.")
-                    break
-        else:
-            while len(uA) <= minimum_detections:
-                uA = new_detect_sources_daofind(
-                    fx, fy, photons, threshold, framecount_per_sec
-                )
-                threshold = threshold - 0.5
-                if threshold <= 1:
-                    print("If you see this, please contact Curvit developer.")
-                    break
-            while len(uA) > maximum_detections:
-                uA = new_detect_sources_daofind(
-                    fx, fy, photons, threshold, framecount_per_sec
-                )
-                threshold = 1.5 * threshold
-                if threshold >= 1e20:
-                    print("If you see this, please contact Curvit developer.")
-                    break
+        uA = adjust_detection_threshold(
+            fx, fy, photons, threshold, framecount_per_sec, minimum_detections, maximum_detections
+        )
 
         print("{} sources detected in {}".format(len(uA), path))
 
@@ -2018,24 +2081,8 @@ def combine_events_lists(
                     seed=1,
                 )
 
-                img_path = ntpath.split(path)[0] + "/*I_l2img*"
-                eventslist_header = fits.getheader(path)
-                if len(glob(img_path)) == 1:
-                    img_hdu = fits.open(glob(img_path)[0])
-                    framerate_from_header.append(1 / img_hdu[0].header["INT_TIME"])
-                    RA_pointing = img_hdu[0].header["RA_PNT"]
-                    DEC_pointing = img_hdu[0].header["DEC_PNT"]
-                elif "AVGFRMRT" in eventslist_header:
-                    framerate_from_header.append(eventslist_header["AVGFRMRT"])
-                    RA_pointing = eventslist_header["RA_PNT"]
-                    DEC_pointing = eventslist_header["DEC_PNT"]
-                else:
-                    print(
-                        "Requires exactly one file matching *I_l2img* in directory {}!".format(
-                            ntpath.split(path)[0]
-                        )
-                    )
-                    sys.exit()
+                framerate, RA_pointing, DEC_pointing = get_framerate_from_header(path)
+                framerate_from_header.append(framerate)
 
                 if i == 0:
                     hdu_base = fits.open(path)
@@ -2108,24 +2155,8 @@ def combine_events_lists(
         combined_eventslist_name = eventslist_name + "_all_orbits.fits"
         i = 0
         for shift, path in zip(shifts, select_events_lists_paths):
-            img_path = ntpath.split(path)[0] + "/*I_l2img*"
-            eventslist_header = fits.getheader(path)
-            if len(glob(img_path)) == 1:
-                img_hdu = fits.open(glob(img_path)[0])
-                framerate_from_header.append(1 / img_hdu[0].header["INT_TIME"])
-                RA_pointing = img_hdu[0].header["RA_PNT"]
-                DEC_pointing = img_hdu[0].header["DEC_PNT"]
-            elif "AVGFRMRT" in eventslist_header:
-                framerate_from_header.append(eventslist_header["AVGFRMRT"])
-                RA_pointing = eventslist_header["RA_PNT"]
-                DEC_pointing = eventslist_header["DEC_PNT"]
-            else:
-                print(
-                    "Requires exactly one file matching *I_l2img* in directory {}!".format(
-                        ntpath.split(path)[0]
-                    )
-                )
-                sys.exit()
+            framerate, RA_pointing, DEC_pointing = get_framerate_from_header(path)
+            framerate_from_header.append(framerate)
 
             if i == 0:
                 hdu_base = fits.open(path)
@@ -2272,37 +2303,9 @@ def image_astrometry(UV_image=None, threshold=3, API_key=AstrometryNet_API_key):
         print("\nAstrometry.net solve success!")
 
         # For fixing the UVIT L2 pipeline image header.
-        try:
-            hdu[0].header.remove("CTYPE1")
-            hdu[0].header.remove("CUNIT1")
-            hdu[0].header.remove("CRPIX1")
-            hdu[0].header.remove("CDELT1")
-            hdu[0].header.remove("CRVAL1")
-            hdu[0].header.remove("CTYPE2")
-            hdu[0].header.remove("CUNIT2")
-            hdu[0].header.remove("CRPIX2")
-            hdu[0].header.remove("CDELT2")
-            hdu[0].header.remove("CRVAL2")
-            hdu[0].header.remove("CROTA2")
-            hdu[0].header.remove("CROTA1")
-        except KeyError:
-            pass
-
-        try:
-            hdu[0].header.remove("CTYPE1")
-            hdu[0].header.remove("CUNIT1")
-            hdu[0].header.remove("CRPIX1")
-            hdu[0].header.remove("CDELT1")
-            hdu[0].header.remove("CRVAL1")
-            hdu[0].header.remove("CTYPE2")
-            hdu[0].header.remove("CUNIT2")
-            hdu[0].header.remove("CRPIX2")
-            hdu[0].header.remove("CDELT2")
-            hdu[0].header.remove("CRVAL2")
-            hdu[0].header.remove("CROTA2")
-            hdu[0].header.remove("CROTA1")
-        except KeyError:
-            pass
+        # Remove WCS-related header keys twice to ensure they're gone
+        remove_wcs_header_keys(hdu[0].header)
+        remove_wcs_header_keys(hdu[0].header)
 
         hdu[0].header.update(wcs_header)
         print("Image header updated with WCS.")
