@@ -1732,8 +1732,30 @@ def adjust_detection_threshold(
 ):
     """Adjust detection threshold to meet source count criteria.
     
-    Returns the list of detected sources (uA) after adjusting the threshold
-    to be within minimum_detections and maximum_detections range.
+    This function iteratively adjusts the detection threshold until the number
+    of detected sources falls within the specified minimum and maximum range.
+    
+    Parameters
+    ----------
+    fx : numpy.ndarray
+        X-coordinates of events.
+    fy : numpy.ndarray
+        Y-coordinates of events.
+    photons : numpy.ndarray
+        Effective number of photons for each event.
+    threshold : float
+        Initial detection threshold value.
+    framecount_per_sec : float
+        The framerate of the observation in frames per second.
+    minimum_detections : int
+        Minimum number of sources to be detected.
+    maximum_detections : int
+        Maximum number of sources to be detected.
+    
+    Returns
+    -------
+    numpy.ndarray
+        Array of detected source coordinates (uA) after threshold adjustment.
     """
     uA = []
     # Decrease threshold until we have enough sources
@@ -1760,7 +1782,31 @@ def adjust_detection_threshold(
 def get_framerate_from_header(path):
     """Get framerate from image header or events list header.
     
-    Returns tuple: (framerate, RA_pointing, DEC_pointing)
+    Attempts to read the framerate from an accompanying image file first,
+    or falls back to the events list header if available.
+    
+    Parameters
+    ----------
+    path : str
+        File path to the events list FITS file.
+    
+    Returns
+    -------
+    tuple of (float, float, float)
+        A tuple containing (framerate, RA_pointing, DEC_pointing).
+        
+        * framerate : float
+            The framerate in frames per second.
+        * RA_pointing : float
+            Right ascension of the pointing in degrees.
+        * DEC_pointing : float
+            Declination of the pointing in degrees.
+    
+    Notes
+    -----
+    The function first searches for a corresponding image file (*I_l2img*)
+    in the same directory. If found, it reads INT_TIME from the header.
+    Otherwise, it looks for AVGFRMRT in the events list header.
     """
     img_path = ntpath.split(path)[0] + "/*I_l2img*"
     eventslist_header = fits.getheader(path)
@@ -1790,7 +1836,38 @@ def setup_auto_background(
 ):
     """Setup automatic background estimation and return results.
     
-    Returns tuple: (lowres_counts, bg_CPS, bg_CPS_e)
+    This is a convenience wrapper around the auto_bg function.
+    
+    Parameters
+    ----------
+    fx : numpy.ndarray
+        X-coordinates of events.
+    fy : numpy.ndarray
+        Y-coordinates of events.
+    time : numpy.ndarray
+        Time stamps of events.
+    photons : numpy.ndarray
+        Effective number of photons for each event.
+    radius : float
+        The source aperture radius in pixels.
+    framecount_per_sec : float
+        The framerate of the observation in frames per second.
+    sky_radius : float
+        The background aperture radius in pixels.
+    ZEF_correction_factor : float
+        Correction factor for zero event frames.
+    
+    Returns
+    -------
+    tuple of (numpy.ndarray, float, float)
+        A tuple containing (lowres_counts, bg_CPS, bg_CPS_e).
+        
+        * lowres_counts : numpy.ndarray
+            Low resolution count array.
+        * bg_CPS : float
+            Background counts per second.
+        * bg_CPS_e : float
+            Error in background counts per second.
     """
     lowres_counts, bg_CPS, bg_CPS_e = auto_bg(
         fx,
@@ -1810,7 +1887,34 @@ def create_quicklook_figure(
 ):
     """Create a quick look figure marking sources and background.
     
-    Creates histogram2d with annotations and circles for sources and background.
+    Creates a 2D histogram visualization with annotations and circles
+    marking the source position and optionally the background region.
+    
+    Parameters
+    ----------
+    fx : numpy.ndarray
+        X-coordinates of events.
+    fy : numpy.ndarray
+        Y-coordinates of events.
+    weights : numpy.ndarray
+        Weight values for each event.
+    xp : float
+        X-coordinate of the source.
+    yp : float
+        Y-coordinate of the source.
+    x_bg : float
+        X-coordinate of the background region (used if background='manual').
+    y_bg : float
+        Y-coordinate of the background region (used if background='manual').
+    background : {'auto', 'manual', None}
+        Background estimation mode.
+    whole_figure_resolution : int
+        Resolution parameter for the full figure.
+    
+    Notes
+    -----
+    This function modifies the current matplotlib figure. It adds histogram2d
+    plot, colorbar, and annotations for source and background regions.
     """
     bins = np.arange(0, 4801, 4096 / whole_figure_resolution)
     plt.hist2d(fx, fy, bins=(bins, bins), weights=weights, norm=LogNorm())
@@ -1849,7 +1953,55 @@ def handle_background_estimation(
 ):
     """Handle background estimation and display for both auto and manual modes.
     
-    Returns tuple: (bg_CPS, bg_CPS_e)
+    This function coordinates the background estimation workflow, including
+    calculating background count rates and creating visualization images.
+    
+    Parameters
+    ----------
+    background : {'auto', 'manual', None}
+        The parameter affects how the background count-rate estimation is done.
+    fx : numpy.ndarray
+        X-coordinates of events.
+    fy : numpy.ndarray
+        Y-coordinates of events.
+    time : numpy.ndarray
+        Time stamps of events.
+    photons : numpy.ndarray
+        Effective number of photons for each event.
+    framecount_per_sec : float
+        The framerate of the observation in frames per second.
+    radius : float
+        The source aperture radius in pixels.
+    x_bg : float
+        X-coordinate of the background region (used if background='manual').
+    y_bg : float
+        Y-coordinate of the background region (used if background='manual').
+    sky_radius : float
+        The background aperture radius in pixels.
+    ZEF_correction_factor : float
+        Correction factor for zero event frames.
+    sub_fig_size : int
+        Size of the sub-figure for visualization.
+    path_to_events_list : str
+        Directory path to save output files.
+    events_list : str
+        Base name of the events list file.
+    
+    Returns
+    -------
+    tuple of (float, float)
+        A tuple containing (bg_CPS, bg_CPS_e).
+        
+        * bg_CPS : float
+            Background counts per second.
+        * bg_CPS_e : float
+            Error in background counts per second.
+    
+    Notes
+    -----
+    For 'auto' mode, uses automatic background region selection.
+    For 'manual' mode, uses the specified x_bg and y_bg coordinates
+    and creates a visualization of the background region.
     """
     if background is not None:
         if background == "auto":
@@ -1901,8 +2053,22 @@ def handle_background_estimation(
 def remove_wcs_header_keys(header):
     """Remove WCS-related header keys from a FITS header.
     
-    Removes CTYPE1, CUNIT1, CRPIX1, CDELT1, CRVAL1, CTYPE2, CUNIT2, 
-    CRPIX2, CDELT2, CRVAL2, CROTA2, CROTA1 keys if they exist.
+    This function removes World Coordinate System (WCS) related keys
+    from a FITS header, which is useful when replacing an old WCS
+    solution with a new one.
+    
+    Parameters
+    ----------
+    header : astropy.io.fits.Header
+        The FITS header object from which to remove WCS keys.
+    
+    Notes
+    -----
+    The following keys are removed if present:
+    CTYPE1, CUNIT1, CRPIX1, CDELT1, CRVAL1, CTYPE2, CUNIT2,
+    CRPIX2, CDELT2, CRVAL2, CROTA2, CROTA1.
+    
+    The function silently ignores any keys that don't exist in the header.
     """
     keys_to_remove = [
         "CTYPE1", "CUNIT1", "CRPIX1", "CDELT1", "CRVAL1",
