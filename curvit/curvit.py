@@ -2469,8 +2469,7 @@ def image_astrometry(UV_image=None, threshold=3, API_key=AstrometryNet_API_key):
         print("\nAstrometry.net solve success!")
 
         # For fixing the UVIT L2 pipeline image header.
-        # Remove WCS-related header keys twice to ensure they're gone
-        remove_wcs_header_keys(hdu[0].header)
+        # Remove existing WCS-related header keys before updating
         remove_wcs_header_keys(hdu[0].header)
 
         hdu[0].header.update(wcs_header)
